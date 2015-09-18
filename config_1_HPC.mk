@@ -1,0 +1,1 @@
+Script_dir=/mnt/research/radishGenomics/AssembledSequencingFiles/AE_RNA_Assembly/scripts
