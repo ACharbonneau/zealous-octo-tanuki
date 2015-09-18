@@ -10,12 +10,12 @@ echo "3. Rename files"
 sh /mnt/research/radishGenomics/AssembledSequencingFiles/AE_RNA_Assembly/scripts/RenameAE_rawfiles.sh
 
 echo "4. Convert fna to fastq"
+rm *_ID*
 for i in `ls *.fna`; do perl /mnt/research/radishGenomics/AssembledSequencingFiles/AE_RNA_Assembly/scripts/fastaQual2fastq.pl ${i}; done
 for i in `ls *.fastq`; do cat ${i} | sed s/\!$// > ${i}.edit; echo ${i}; done
 
 echo "5. Clean up directory"
 rm -r `ls -d 20081*/`
-rm *_ID*
 rm *.tar.gz
 mkdir OriginalFiles
 mv *.fna OriginalFiles/
