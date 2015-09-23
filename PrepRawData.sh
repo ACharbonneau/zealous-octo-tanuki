@@ -21,5 +21,7 @@ mkdir OriginalFiles
 mv *.fna OriginalFiles/
 mv *.qual OriginalFiles/
 rm *.fastq
+mkdir fastqc
+mkdir metadata
 
 echo "Data Acquired"
