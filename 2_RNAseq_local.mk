@@ -36,18 +36,21 @@ Moghe${kmer}SamFiles/%.edit.bam : Moghe${kmer}SamFiles/%.edit.sam
 
 # Mapping
 
-Sativus${kmer}SamFiles/%.sativus.sam : ${RNAData_dir}/%.fastq.edit ${GSNAP_dir}/Sat_${kmer}
+Sativus${kmer}SamFiles/%.sativus.sam : ${RNAData_dir}/%.fastq.edit
 	mkdir Sativus${kmer}SamFiles
 	gsnap -d Sat_${kmer} --force-single-end $^ -k ${kmer} -A sam -N 1 -O -n 1 -Q --nofails -o $@
 
-Sat_Chloro${kmer}SamFiles/%.chloro.sam : ${RNAData_dir}/%.fastq.edit ${GSNAP_dir}/Sat_chloro${kmer}
+Sat_Chloro${kmer}SamFiles/%.chloro.sam : ${RNAData_dir}/%.fastq.edit 
 	mkdir Sat_Chloro${kmer}SamFiles
 	gsnap -d Sat_chloro${kmer} --force-single-end $^ -k ${kmer} -A sam -N 1 -O -n 1 -Q --nofails -o $@
 
-Moghe${kmer}SamFiles/%.edit.sam : ${RNAData_dir}/%.fastq.edit ${GSNAP_dir}/Moghe_${kmer}
+Moghe${kmer}SamFiles/%.edit.sam : ${RNAData_dir}/%.fastq.edit 
 	mkdir Moghe${kmer}SamFiles
 	gsnap -d Moghe_${kmer} --force-single-end $^ -k ${kmer} -A sam -N 1 -O -n 1 -Q --nofails -o $@
 
+Sativus${kmer}SamFiles/%.sativus.sam : ${GSNAP_dir}/Sat_${kmer}
+Sat_Chloro${kmer}SamFiles/%.chloro.sam : ${GSNAP_dir}/Sat_chloro${kmer}
+Moghe${kmer}SamFiles/%.edit.sam : ${GSNAP_dir}/Moghe_${kmer}
 
 #Get Files
 
