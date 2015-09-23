@@ -1,1 +1,2 @@
 Script_dir=/mnt/research/radishGenomics/AssembledSequencingFiles/AE_RNA_Assembly/scripts
+metadata_dir=/mnt/research/radishGenomics/OriginalSequencingFiles/2008_AE_RNAseq/cel6
