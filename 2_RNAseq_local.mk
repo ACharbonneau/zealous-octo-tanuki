@@ -1,71 +1,64 @@
 #Produce a paper about RNAseq for anther exertion lines
 
-# This make file needs to run on the MSU HPC (or compute resource with similar
-# hardware and software, and needs to run *before* RNAseq_local.mk
+# This make file needs to run *after* 1_RNAseq_HPCC.mk, on a computer that can install gSNAP
 
 include scripts/config_2_Local.mk
 
 
-Noreason : Sativus${kmer}SamFiles/6_20081211_7_KL9.sativus.sorted Sat_Chloro_${kmer}SamFiles/6_20081211_7_KL9.chloro.sorted Moghe${kmer}SamFiles/6_20081211_7_KL9.edit.sorted
-
+Aligned_reads.txt : ChloroSat_SamFiles/${kmer}.chloro.sorted Sativus_SamFiles/${kmer}.sat.sorted Moghe_SamFiles/${kmer}.moghe.sorted
+	for i in *SamFiles/*.sorted.bam; do samtools view -c $${i}; done > Aligned_reads.txt
 
 # Convert New Files
 
-Sativus${kmer}SamFiles/%.sativus.sorted : Sativus${kmer}SamFiles/%.sativus.bam
+ChloroSat_SamFiles/${kmer}.chloro.sorted: ChloroSat_SamFiles/${kmer}.chloro.bam
 	samtools sort $^ $@
-	samtools index $@
+	samtools index $@.bam
 
-Sativus${kmer}SamFiles/%.sativus.bam : Sativus${kmer}SamFiles/%.sativus.sam
-	samtools view -q 30 -b -T ${RapGenomeData_dir}/RrContigs.fa.fasta $^ > $@
+ChloroSat_SamFiles/${kmer}.chloro.bam : ChloroSat_SamFiles/${kmer}.chloro.sam
+	samtools view -q 30 -b -T ${SatGenomeData_dir}/Rsativus_chloroplast.fa $^ > $@
 
-
-Sat_Chloro_${kmer}SamFiles/%.chloro.sorted : Sat_Chloro_${kmer}SamFiles/%.chloro.bam
+Sativus_SamFiles/${kmer}.sat.sorted: Sativus_SamFiles/${kmer}.sat.bam
 	samtools sort $^ $@
-	samtools index $@
+	samtools index $@.bam
 
-Sat_Chloro_${kmer}SamFiles/%.chloro.bam : Sat_Chloro_${kmer}SamFiles/%.chloro.sam
-	samtools view -q 30 -b -T ${RapGenomeData_dir}/RrContigs.fa.fasta $^ > $@
+Sativus_SamFiles/${kmer}.sat.bam : Sativus_SamFiles/${kmer}.sat.sam
+	samtools view -q 30 -b -T ${SatGenomeData_dir}/RSA_r1.0 $^ > $@
 
-
-Moghe${kmer}SamFiles/%.edit.sorted : Moghe${kmer}SamFiles/%.edit.bam
+Moghe_SamFiles/${kmer}.moghe.sorted: Moghe_SamFiles/${kmer}.moghe.bam
 	samtools sort $^ $@
-	samtools index $@
+	samtools index $@.bam
 
-Moghe${kmer}SamFiles/%.edit.bam : Moghe${kmer}SamFiles/%.edit.sam
+Moghe_SamFiles/${kmer}.moghe.bam : Moghe_SamFiles/${kmer}.moghe.sam
 	samtools view -q 30 -b -T ${RapGenomeData_dir}/RrContigs.fa.fasta $^ > $@
 
 # Mapping
 
-Sativus${kmer}SamFiles/%.sativus.sam : ${RNAData_dir}/%.fastq.edit
-	gsnap -d Sat_${kmer} --force-single-end $^ -k ${kmer} -A sam -N 1 -O -n 1 -Q --nofails -o $@
-
-Sat_Chloro_${kmer}SamFiles/%.chloro.sam : ${RNAData_dir}/%.fastq.edit 
+ChloroSat_SamFiles/${kmer}.chloro.sam :: ${RNAData_dir}/*.fastq.edit 
+	ls ChloroSat_SamFiles || mkdir ChloroSat_SamFiles
 	gsnap -d Sat_Chloro_${kmer} --force-single-end $^ -k ${kmer} -A sam -N 1 -O -n 1 -Q --nofails -o $@
 
-Moghe${kmer}SamFiles/%.edit.sam : ${RNAData_dir}/%.fastq.edit 
+ChloroSat_SamFiles/${kmer}.chloro.sam :: ${GSNAP_dir}/Sat_Chloro_${kmer} 
+	
+Sativus_SamFiles/${kmer}.sat.sam :: ${RNAData_dir}/*.fastq.edit 
+	ls Sativus_SamFiles || mkdir Sativus_SamFiles 
+	gsnap -d Sat_${kmer} --force-single-end $^ -k ${kmer} -A sam -N 1 -O -n 1 -Q --nofails -o $@
+
+Sativus_SamFiles/${kmer}.sat.sam :: ${GSNAP_dir}/Sat_${kmer}
+
+Moghe_SamFiles/${kmer}.moghe.sam :: ${RNAData_dir}/*.fastq.edit 
+	ls Moghe_SamFiles || mkdir Moghe_SamFiles
 	gsnap -d Moghe_${kmer} --force-single-end $^ -k ${kmer} -A sam -N 1 -O -n 1 -Q --nofails -o $@
 
-Sativus${kmer}SamFiles/%.sativus.sam : ${GSNAP_dir}/Sat_${kmer}
-Sat_Chloro_${kmer}SamFiles/%.chloro.sam : ${GSNAP_dir}/Sat_Chloro_${kmer}
-Moghe${kmer}SamFiles/%.edit.sam : ${GSNAP_dir}/Moghe_${kmer}
+Moghe_SamFiles/${kmer}.moghe.sam :: ${GSNAP_dir}/Moghe_${kmer} 
 
-Sativus${kmer}SamFiles :
-	mkdir Sativus${kmer}SamFiles
 	
-Sat_Chloro_${kmer}SamFiles :
-	mkdir Sat_Chloro_${kmer}SamFiles
-	
-Moghe${kmer}SamFiles :
-	mkdir Moghe${kmer}SamFiles
-
 #Get Files
 
+${GSNAP_dir}/Sat_Chloro_${kmer} : 
+	gmap_build -d $@ -k ${kmer} ${SatGenomeData_dir}/Rsativus_chloroplast.fa	
 
-${GSNAP_dir}/Moghe_${kmer} : ${RapGenomeData_dir}/RrContigs.fa.fasta
-	gmap_build -d $@ -k ${kmer} $^	
-	
-${GSNAP_dir}/Sat_Chloro_${kmer} : ${SatGenomeData_dir}/Rsativus_chloroplast.fa	
-	gmap_build -d $@ -k ${kmer} $^
-	
-${GSNAP_dir}/Sat_${kmer} : ${SatGenomeData_dir}/RSA_r1.0	
-	gmap_build -d $@ -k ${kmer} $^
+${GSNAP_dir}/Sat_${kmer} : 
+	gmap_build -d $@ -k ${kmer} ${SatGenomeData_dir}/RSA_r1.0	
+
+${GSNAP_dir}/Moghe_${kmer} : 
+	gmap_build -d $@ -k ${kmer} ${RapGenomeData_dir}/RrContigs.fa.fasta	
