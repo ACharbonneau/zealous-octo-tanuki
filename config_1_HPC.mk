@@ -1,2 +1,7 @@
 Script_dir=/mnt/research/radishGenomics/AssembledSequencingFiles/AE_RNA_Assembly/scripts
 metadata_dir=/mnt/research/radishGenomics/OriginalSequencingFiles/2008_AE_RNAseq/cel6
+localRNAData_dir=/Volumes/radishGenomics/AssembledSequencingFiles/AE_RNA_Assembly
+HPCRNAData_dir=/radishGenomics/AssembledSequencingFiles/AE_RNA_Assembly
+RapGenomeData_dir=/radishGenomics/AssembledSequencingFiles/MoghePublished
+SatGenomeData_dir=/radishGenomics/PublicData/RsativusGenome
+kmer=15
