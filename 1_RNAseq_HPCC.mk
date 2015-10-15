@@ -7,9 +7,8 @@
 include scripts/config_1_HPC.mk 
 
 
-all : : ChloroSat_SamFiles/bt2_chloro.sorted Sativus_SamFiles/bt2_sat.sorted Moghe_SamFiles/bt2_moghe.sorted
-	exit && exit && cd ${localRNAData_dir}
-	make -f scripts/2_RNAseq_local.mk
+all : ChloroSat_SamFiles/bt2_chloro.sorted Sativus_SamFiles/bt2_sat.sorted Moghe_SamFiles/bt2_moghe.sorted
+	echo "From local machine run: make -f scripts/2_RNAseq_local.mk"
 	
 
 # Convert New Files
@@ -63,8 +62,6 @@ Sativus_SamFiles/bt2_sat.sam : ${HPCRNAData_dir}/*.fastq.edit
 	ls Bowtie_Indices/bt2_sat*.bt2 || mkdir Bowtie_Indices && \
 		bowtie2-build SatGenomeData_dir/RSA_r1.0 Bowtie_Indices/bt2_sat
 	bowtie2 --local -D 15 -R 2 -N 0 -L 20 -i S,1,0.75 -x Bowtie_Indices/bt2_sat -U $^ -S $@
-
-
 
 
 metadata/SeqProductionSumm.xls :
