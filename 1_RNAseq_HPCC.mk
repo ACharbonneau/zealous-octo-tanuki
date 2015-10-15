@@ -9,7 +9,6 @@ include scripts/config_1_HPC.mk
 
 all : ChloroSat_SamFiles/bt2_chloro.sorted Sativus_SamFiles/bt2_sat.sorted Moghe_SamFiles/bt2_moghe.sorted
 	echo "From local machine run: make -f scripts/2_RNAseq_local.mk"
-	
 
 # Convert New Files
 
