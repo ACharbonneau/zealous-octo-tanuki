@@ -1,6 +1,6 @@
 #!/bin/sh -login
 #PBS -j oe
-#PBS -l nodes=1:ppn=1,walltime=0:00:60,mem=10gb
+#PBS -l nodes=1:ppn=1,walltime=4:00:00,mem=10gb
 #PBS -m abe
 
 # -o : tells it where to put output from your job
@@ -20,4 +20,4 @@ cd ${PBS_O_WORKDIR}
 LIST=`echo ${indiv} | tr " " ", "`
 
 
-bowtie2 --local -D 15 -R 2 -N 0 -L 20 -i S,1,0.75 -x ${genome} -U $LIST -S ${PBS_JOBNAME}
+bowtie2 --local -D 15 -R 2 -N 0 -L 20 -i S,1,0.75 -x ${genome} -U $LIST -S ${PBS_JOBNAME}	
