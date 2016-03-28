@@ -25,4 +25,4 @@ bowtie2 --local -D 15 -R 2 -N 0 -L 20 -i S,1,0.75 -x ${genome} -U $LIST -S ${bsn
 #Launch samtools
 cd ${bsname}
 
-qsub ../scripts/ViewSamtools.qsub -N ${bsname}.samtools -v genome=$[genome},index=${index},gff=${gff},bsname=${bsname},indiv=${indiv}
+qsub ../scripts/ViewSamtools.qsub -N ${bsname}.samtools -v genome=${genome},index=${index},gff=${gff},bsname=${bsname},indiv=${indiv}
