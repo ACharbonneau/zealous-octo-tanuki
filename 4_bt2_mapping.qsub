@@ -1,6 +1,6 @@
 #!/bin/sh -login
 #PBS -j oe
-#PBS -l nodes=1:ppn=1,walltime=0:00:60,mem=10gb
+#PBS -l nodes=1:ppn=1,walltime=4:00:00,mem=10gb
 #PBS -m abe
 
 # -o : tells it where to put output from your job
@@ -13,8 +13,16 @@
 # -t 0-? : job numbers for array submission
 
 
-module load SAMTools/1.2
+module load bowtie2/2.2.6
 
 cd ${PBS_O_WORKDIR}
 
-samtools view -q 30 -b -T ${SatGenomeData_dir}/Rsativus_chloroplast.fa $^ > $@
+LIST=`echo ${indiv} | tr " " ", "`
+
+
+bowtie2 --local -D 15 -R 2 -N 0 -L 20 -i S,1,0.75 -x ${genome} -U $LIST -S ${bsname}/${bsname}.sam
+
+#Launch samtools
+cd ${bsname}
+
+qsub ../scripts/ViewSamtools.qsub -N ${bsname}.samtools -v genome=$[genome},index=${index},gff=${gff},bsname=${bsname},indiv=${indiv}

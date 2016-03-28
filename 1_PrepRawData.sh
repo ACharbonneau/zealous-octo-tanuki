@@ -22,6 +22,10 @@ mv *.fna OriginalFiles/
 mv *.qual OriginalFiles/
 rm *.fastq
 mkdir fastqc
+mkdir BowtieIndicies
 mkdir metadata
+cp /mnt/research/radishGenomics/OriginalSequencingFiles/2008_AE_RNAseq/cel6/SeqProductionSumm.xls metadata/SeqProductionSumm.xls
+
+qsub 2_FastQC.qsub
 
 echo "Data Acquired"

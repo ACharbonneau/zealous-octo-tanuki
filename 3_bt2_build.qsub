@@ -12,9 +12,22 @@
 # -r n : tells it not to re-run the script in the case of an error (so it doesn't overwrite any results generated$
 # -t 0-? : job numbers for array submission
 
-
-module load bowtie2/2.2.6
+if [ "$PBS_JOBNAME" == "notset" ]
+then
+        echo "please set the job name"
+        exit 1
+fi
 
 cd ${PBS_O_WORKDIR}
 
-bowtie2-build ${genome} ${index}
+mkdir ${PBS_JOBNAME}
+
+
+
+module load bowtie2/2.2.6
+
+bowtie2-build ${genome} BowtieIndicies/${PBS_JOBNAME} #build index
+
+#Then launch mapper
+
+qsub scripts/bt2_mapping.qsub -N ${PBS_JOBNAME}.map -o ${PBS_JOBNAME}/ -v genome=$[genome},index=BowtieIndicies/${PBS_JOBNAME},gff=${gff},bsname=${PBS_JOBNAME},indiv=`ls *.fastq.edit`
