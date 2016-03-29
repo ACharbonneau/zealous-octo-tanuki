@@ -1,6 +1,6 @@
 #!/bin/sh -login
 #PBS -j oe
-#PBS -l nodes=1:ppn=1,walltime=0:02:00,mem=10gb
+#PBS -l nodes=1:ppn=1,walltime=02:00:00,mem=10gb
 #PBS -m abe
 
 # -o : tells it where to put output from your job
@@ -29,5 +29,6 @@ module load bowtie2/2.2.6
 bowtie2-build ${genome} BowtieIndicies/${PBS_JOBNAME} #build index
 
 #Then launch mapper
+qsub scripts/echo.qsub -N ${PBS_JOBNAME}.map -o ${PBS_JOBNAME}/ -v genome=${genome},index=BowtieIndicies/${PBS_JOBNAME},gff=${gff},bsname=${PBS_JOBNAME},indiv=`ls *.fastq.edit`
 
-qsub scripts/4_bt2_mapping.qsub -N ${PBS_JOBNAME}.map -o ${PBS_JOBNAME}/ -v genome=${genome},index=BowtieIndicies/${PBS_JOBNAME},gff=${gff},bsname=${PBS_JOBNAME},indiv=`ls *.fastq.edit`
+#qsub scripts/4_bt2_mapping.qsub -N ${PBS_JOBNAME}.map -o ${PBS_JOBNAME}/ -v genome=${genome},index=BowtieIndicies/${PBS_JOBNAME},gff=${gff},bsname=${PBS_JOBNAME},indiv=`ls *.fastq.edit`
