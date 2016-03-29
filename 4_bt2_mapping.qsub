@@ -20,7 +20,7 @@ cd ${PBS_O_WORKDIR}
 LIST=`echo $indiv | sed s/" "/,/g`
 
 
-bowtie2 --local -D 15 -R 2 -N 0 -L 20 -i S,1,0.75 -x ${genome} -U $LIST -S ${bsname}/${bsname}.sam
+bowtie2 --local -D 15 -R 2 -N 0 -L 20 -i S,1,0.75 -x ${index} -U $LIST -S ${bsname}/${bsname}.sam
 
 #Launch samtools
 cd ${bsname}
