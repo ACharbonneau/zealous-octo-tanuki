@@ -20,7 +20,7 @@ then
         exit 1
 fi
 
-PBS_JOBNAME=${PBS_JOBNAME}_${PBS_ARRAYID}
+
 
 cd ${PBS_O_WORKDIR}
 
@@ -28,9 +28,11 @@ mkdir ${PBS_JOBNAME}
 
 filelist=(*fastq.edit)
 
+#thisfile=${filelist[${n}]}
 
+indiv=${filelist[${PBS_ARRAYID}]}
 
-indiv=${filelist[${PBS_ARRAYID}
+PBS_JOBNAME=${PBS_JOBNAME}_${indiv}
 
 module load bowtie2/2.2.6
 
