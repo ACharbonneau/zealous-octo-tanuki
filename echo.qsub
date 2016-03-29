@@ -20,9 +20,9 @@ fi
 
 cd ${PBS_O_WORKDIR}
 
-echo ${PBS_JOBNAME}
-echo ${genome}
-echo ${index}
-echo ${gff}
-echo ${bsname}
-echo ${indiv}
+echo "Jobname is " ${PBS_JOBNAME}
+echo "Genome is " ${genome}
+echo "BowtieIndex is " ${index}
+echo "GFF file is " ${gff}
+echo "Basename is " ${bsname}
+echo "Sequence files are" ${indiv}
