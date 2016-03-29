@@ -2,6 +2,8 @@
 #PBS -j oe
 #PBS -l nodes=1:ppn=1,walltime=02:00:00,mem=10gb
 #PBS -m abe
+#PBS -r n
+#PBS -t 0-35
 
 # -o : tells it where to put output from your job
 # -j oe : specifies that output and error messages from your job can be placed in the same location
@@ -10,7 +12,8 @@
 # -m abe : what to send email updates about (abort, begin, end)
 # -N : names your job
 # -r n : tells it not to re-run the script in the case of an error (so it doesn't overwrite any results generated$
-# -t 0-? : job numbers for array submission
+#PBS -r n
+#PBS -t 0-200
 
 if [ "$PBS_JOBNAME" == "notset" ]
 then
@@ -18,11 +21,17 @@ then
         exit 1
 fi
 
+PBS_JOBNAME=${PBS_JOBNAME}_${PBS_ARRAYID}
+
 cd ${PBS_O_WORKDIR}
 
 mkdir ${PBS_JOBNAME}
 
+filelist=(*fastq.edit)
 
+
+
+indiv=${filelist[${PBS_ARRAYID}
 
 module load bowtie2/2.2.6
 
