@@ -17,7 +17,7 @@ module load bowtie2/2.2.6
 
 cd ${PBS_O_WORKDIR}
 
-LIST=`echo ${indiv} | tr " " ", "`
+LIST=`echo $indiv | sed s/" "/,/g`
 
 
 bowtie2 --local -D 15 -R 2 -N 0 -L 20 -i S,1,0.75 -x ${genome} -U $LIST -S ${bsname}/${bsname}.sam
