@@ -12,8 +12,7 @@
 # -m abe : what to send email updates about (abort, begin, end)
 # -N : names your job
 # -r n : tells it not to re-run the script in the case of an error (so it doesn't overwrite any results generated$
-#PBS -r n
-#PBS -t 0-200
+
 
 if [ "$PBS_JOBNAME" == "notset" ]
 then
