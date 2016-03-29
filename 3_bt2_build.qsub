@@ -30,4 +30,4 @@ bowtie2-build ${genome} BowtieIndicies/${PBS_JOBNAME} #build index
 
 #Then launch mapper
 
-qsub scripts/bt2_mapping.qsub -N ${PBS_JOBNAME}.map -o ${PBS_JOBNAME}/ -v genome=${genome},index=BowtieIndicies/${PBS_JOBNAME},gff=${gff},bsname=${PBS_JOBNAME},indiv=`ls *.fastq.edit`
+qsub scripts/4_bt2_mapping.qsub -N ${PBS_JOBNAME}.map -o ${PBS_JOBNAME}/ -v genome=${genome},index=BowtieIndicies/${PBS_JOBNAME},gff=${gff},bsname=${PBS_JOBNAME},indiv=`ls *.fastq.edit`

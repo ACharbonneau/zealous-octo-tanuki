@@ -23,4 +23,4 @@ samtools sort ${bsname}.bam ${bsname}.sorted
 
 samtools index ${bsname}.sorted.bam
 
-qsub ../scripts/htseq.qsub -N ${bsname}.HTseq -v genome=${genome},index=${index},gff=${gff},bsname=${bsname},indiv=${indiv}
+qsub ../scripts/6_htseq.qsub -N ${bsname}.HTseq -v genome=${genome},index=${index},gff=${gff},bsname=${bsname},indiv=${indiv}
