@@ -2,8 +2,7 @@
 #PBS -j oe
 #PBS -l nodes=1:ppn=1,walltime=02:00:00,mem=10gb
 #PBS -m abe
-#PBS -r n
-#PBS -t 0-35
+
 
 # -o : tells it where to put output from your job
 # -j oe : specifies that output and error messages from your job can be placed in the same location
@@ -24,22 +23,13 @@ fi
 
 cd ${PBS_O_WORKDIR}
 
-mkdir ${PBS_JOBNAME}
 
-filelist=(*fastq.edit)
+mkdir ${PBS_JOBNAME} #make a folder for each genome you're mapping to 
 
-#thisfile=${filelist[${n}]}
-
-indiv=${filelist[${PBS_ARRAYID}]}
-
-PBS_JOBNAME=${PBS_JOBNAME}_${indiv}
 
 module load bowtie2/2.2.6
 
 bowtie2-build ${genome} BowtieIndicies/${PBS_JOBNAME} #build index
 
-#Then launch metadata collector
-qsub scripts/echo.qsub -N ${PBS_JOBNAME}.metadata -v genome="${genome}",index="BowtieIndicies/${PBS_JOBNAME}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}"
-
-#and mapper
-qsub scripts/4_bt2_mapping.qsub -N ${PBS_JOBNAME}.map -o ${PBS_JOBNAME}/ -v genome="${genome}",index="BowtieIndicies/${PBS_JOBNAME}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}"
+#Launch mapper
+qsub scripts/4_bt2_mapping.qsub -N ${PBS_JOBNAME}.map -o ${PBS_JOBNAME}/ -v genome="${genome}",index="../BowtieIndicies/${PBS_JOBNAME}",gff="${gff}",bsname="${PBS_JOBNAME}"

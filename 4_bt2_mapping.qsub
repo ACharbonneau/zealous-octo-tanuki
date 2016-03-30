@@ -2,6 +2,9 @@
 #PBS -j oe
 #PBS -l nodes=1:ppn=1,walltime=4:00:00,mem=10gb
 #PBS -m abe
+#PBS -r n
+#PBS -t 0-3
+######PBS -t 0-35
 
 # -o : tells it where to put output from your job
 # -j oe : specifies that output and error messages from your job can be placed in the same location
@@ -12,17 +15,31 @@
 # -r n : tells it not to re-run the script in the case of an error (so it doesn't overwrite any results generated$
 # -t 0-? : job numbers for array submission
 
+cd ${PBS_O_WORKDIR} #Go to directory with sequencing files
+
+
+filelist=(*fastq.edit) #Get a list of all sequencing files
+
+#thisfile=${filelist[${n}]}
+
+indiv=${filelist[${PBS_ARRAYID}]} #assign indiv to be current sequence file
+
+PBS_JOBNAME=${PBS_JOBNAME}_${indiv} #rename job to job_indiv
+
+cd ${PBS_O_WORKDIR}/${bsname}
 
 module load bowtie2/2.2.6
 
-cd ${PBS_O_WORKDIR}
+#LIST=`echo ${indiv} | sed s/" "/,/g`
 
-LIST=`echo ${indiv} | sed s/" "/,/g`
+#Then launch metadata collector
+qsub ../scripts/echo.qsub -N ${PBS_JOBNAME}.metadata -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}"
 
+#Run bowtie2
 
-bowtie2 --local -D 15 -R 2 -N 0 -L 20 -i S,1,0.75 -x ${index} -U ${LIST} -S ${bsname}/${bsname}.sam
+bowtie2 --local -D 15 -R 2 -N 0 -L 20 -i S,1,0.75 -x ${index} -U ../${indiv} -S ${PBS_JOBNAME}.sam
 
 #Launch samtools
-cd ${bsname}
+#cd ${bsname}
 
-qsub ../scripts/5_view_samtools.qsub -N ${bsname}.samtools -v genome="${genome}",index="${index}",gff="${gff}",bsname="${bsname}",indiv="${indiv}"
+qsub ../scripts/5_view_samtools.qsub -N ${bsname}.samtools -v genome="${genome}",index="${index}",gff="${gff}",bsname="${bsname}",indiv="${indiv}",job="${PBS_JOBNAME}"

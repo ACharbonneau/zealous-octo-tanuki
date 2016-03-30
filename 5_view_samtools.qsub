@@ -17,10 +17,10 @@ module load SAMTools/1.2
 
 cd ${PBS_O_WORKDIR}
 
-samtools view -q 30 -b -T ${genome} ${bsname}.sam > ${bsname}.bam
+samtools view -q 30 -b -T ${genome} ${job}.sam > ${job}.bam
 
-samtools sort ${bsname}.bam ${bsname}.sorted
+samtools sort ${job}.bam ${job}.sorted
 
-samtools index ${bsname}.sorted.bam
+samtools index ${job}.sorted.bam
 
-qsub ../scripts/6_htseq.qsub -N ${bsname}.HTseq -v genome="${genome}",index="${index}",gff="${gff}",bsname="${bsname}",indiv="${indiv}"
+qsub ../scripts/6_htseq.qsub -N ${bsname}.HTseq -v genome="${genome}",index="${index}",gff="${gff}",bsname="${bsname}",indiv="${indiv}",job="${job}"
