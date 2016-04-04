@@ -2,7 +2,9 @@
 title: "AE_RNAseq"
 author: "Amanda Charbonneau"
 date: "March 30, 2016"
-output: html_document
+output: 
+  html_document: 
+    keep_md: yes
 ---
 
 
@@ -10,11 +12,38 @@ output: html_document
 require(ggplot2)
 require(dplyr)
 require(DESeq2)
+require(gtools)
+
+# setting a reasonable p-value threshold to be used throughout
+p.threshold <- 0.05
 ```
 #Import all of the count files from mapping AE reads to a single genome
 
-```{r}
+```{r DataHPC}
+
+countsDir <- file.path("/mnt/scratch/charbo24/AE_Assembly/Kitashiba2014")
+
+outputfilename <- ("Kitashiba2014d_eseq2_expr_changes.csv")
+
+ALLTHEFILES <- list.files(countsDir, pattern = "*.counts.txt")
+
+meta <- read.csv("../metadata/metadata.csv")
+
+```
+
+```{r DataLocal, results='no'}
+
+
 ALLTHEFILES <- dir() #Get file names
+
+meta <- read.csv("../metadata.csv")
+
+row.names(meta) <- meta[,1]
+
+```
+
+
+```{r Merge Gene Counts, echo=F}
 
 File_Num <- length(ALLTHEFILES) 
 
@@ -24,6 +53,8 @@ ALLTHEGENES <- read.csv(ALLTHEFILES[ 1 ], sep = "\t", header = F,
 
 # Remove X from name of column 2
 colnames(ALLTHEGENES) <- c("Genes", substring(colnames(ALLTHEGENES[2]),2))
+
+row.names(ALLTHEGENES) <- ALLTHEGENES[,1]
 
 # In a loop, read in each dataset, then merge it into the starting dataframe
 
@@ -37,17 +68,85 @@ for( X in c( 2:File_Num )){ #start at 2 because first dataset already in
   
 }
 
-meta <- read.csv("../metadata.csv")
-
-```
-
-
-
-```{r, echo=FALSE}
-
-
+row.names(ALLTHEGENES) <- ALLTHEGENES[,1]
 
 
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+##DESeq2
+
+`DESeq2` does a lot of processing automagically, and it is the most complex of the 3 approaches. It estimates the dispersion of the data similarly to `edgeR`, but then normalises using 'shrinkage'; adjusting the estimate on a gene-by-gene basis by comparing the dispersion of each gene with the group-level dispersion.
+
+```{r modelling with DESeq2, echo=FALSE, results='hide', message=FALSE}
+
+# DESeq2 uses the `expressionset` data format, so the data needs to be reformatted to fit:
+raph.exprs <- select(ALLTHEGENES, contains("_"))
+
+raph.groups <- select(meta, FlowCell, Date, SampleInFC, ExID, Location, Line, SampleInLine)
+
+raph.meta <- data.frame( description=c( "High",
+                                        "Low") )
+
+raph.est <- ExpressionSet( assayData=as.matrix(raph.exprs),
+                           phenoData=new( "AnnotatedDataFrame", data=raph.groups))
+                                          #,
+                                          #varMetadata=raph.meta ))
+
+# Create design matrix
+design <- model.matrix(~ pData(raph.est)$Line )
+
+# Create DESeq2 datasets
+raph.DES <- DESeqDataSetFromMatrix(countData = exprs( raph.est ), colData = pData( raph.est ), design = ~ Line )
+raph.DES <- DESeq( raph.DES )
+
+# Plot dispersion estimates
+plotDispEsts( raph.DES )
+
+```
+
+## Contrasts with DESeq2
+
+```{r contrasts with DESeq2, echo=FALSE, results='hide'}
+
+## DESeq2 - High vs Low
+deseq2_results_hvl <- results( raph.DES, contrast=list( "LineHigh", "LineLow" ), cooksCutoff=FALSE, independentFiltering=FALSE )
+
+  deseq2_results_hvl$threshold <- as.logical( deseq2_results_hvl$padj < p.threshold )
+    deseq2_genes_hvl <- row.names( deseq2_results_hvl )[ which( deseq2_results_hvl$threshold )]
+    
+
+      
+
+
+```
+
+```{r gene lists from DESeq2, echo=FALSE, results='hide'}
+
+deseq2_results_hvl_df <- data.frame( deseq2_results_hvl )
+  deseq2_results_hvl_df$gene_name <- row.names( deseq2_results_hvl )
+deseq2_results_hvl_df$FC <- logratio2foldchange(deseq2_results_hvl_df$log2FoldChange)
+
+deseq2_results_hvl_df <- filter(deseq2_results_hvl_df, !is.na(log2FoldChange))
+
+deseq2_results_hvl_df$ABlog2FoldChange <- abs(deseq2_results_hvl_df$log2FoldChange)
+
+write.csv( deseq2_results_hvl_df, outputfilename, quote=FALSE, row.names=FALSE )
+```
+
+ggplot(deseq2_results_hvl, aes(log2FoldChange, baseMean), size = 8) + geom_point()
+
+
+test <- deseq2_results_hvl[1:5,]
+
+test$FC <- exp(test$log2FoldChange)
+
+
+a <- 1:10
+b <- 10:1
+fc <- b/a
+df <- data.frame(a, b, fc, a.greaterthan.b = a > b)
+df
+ggplot(df, aes(a, fc, colour = a.greaterthan.b), size = 8) + geom_point()
+df$log2fc <- log2(fc)
+df$newFC <- 2^df$log2fc
+df$fcp <- logratio2foldchange(df$log2fc)

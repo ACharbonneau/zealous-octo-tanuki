@@ -10,7 +10,11 @@ p.threshold <- 0.05
 
 countsDir <- file.path("/mnt/scratch/charbo24/AE_Assembly/Kitashiba2014")
 
-outputfilename <- ("Kitashiba2014d_eseq2_expr_changes.csv")
+outputfilename <- ("/mnt/scratch/charbo24/AE_Assembly/HTseqOutput/Kitashiba2014d_eseq2_expr_changes.csv")
+
+
+
+
 
 ALLTHEFILES <- list.files(countsDir, pattern = "*.counts.txt")
 
