@@ -3,7 +3,7 @@
 #PBS -l nodes=1:ppn=1,walltime=4:00:00,mem=10gb
 #PBS -m a
 #PBS -r n
-#PBS -t 0-35
+#PBS -t 0-34
 
 # -o : tells it where to put output from your job
 # -j oe : specifies that output and error messages from your job can be placed in the same location
