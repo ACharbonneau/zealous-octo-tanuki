@@ -1,3 +1,8 @@
 /Excalibur
 *.DS_Store
 ._*
+figure/
+*.pdf
+*.html
+*.R
+*.md
