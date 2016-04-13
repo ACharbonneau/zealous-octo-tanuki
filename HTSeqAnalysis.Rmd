@@ -4,51 +4,57 @@ author: "Amanda Charbonneau"
 date: "March 30, 2016"
 output: 
   html_document: 
-    keep_md: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 4
+    
 ---
 
+#Global parameters for modeling:
 
-```{r}
+```{r Global}
+#Setting a reasonable p-value threshold to be used throughout
+p.threshold <- 0.05
+
+countsDir <- file.path("../Kitashiba2014")
+outputfilenamePlain <- ("../DEseqOutput/Kitashiba2014_deseq2_expr_changes_HvL.csv")
+outputfilenameInteraction <- ("../DEseqOutput/Kitashiba2014_deseq2_expr_changes_Int_HvL.csv")
+
+
+```
+
+
+```{r LoadPackages, echo=FALSE, results='hide', include=FALSE}
+require(MASS)
 require(ggplot2)
 require(dplyr)
 require(DESeq2)
 require(gtools)
+require(pheatmap)
+require(RColorBrewer)
 
-# setting a reasonable p-value threshold to be used throughout
-p.threshold <- 0.05
 ```
+
+
+```{r Data, echo=FALSE}
 #Import all of the count files from mapping AE reads to a single genome
-
-```{r DataHPC}
-
-countsDir <- file.path("/mnt/scratch/charbo24/AE_Assembly/Kitashiba2014")
-
-outputfilename <- ("Kitashiba2014d_eseq2_expr_changes.csv")
 
 ALLTHEFILES <- list.files(countsDir, pattern = "*.counts.txt")
 
 meta <- read.csv("../metadata/metadata.csv")
-
-```
-
-```{r DataLocal, results='no'}
-
-
-ALLTHEFILES <- dir() #Get file names
-
-meta <- read.csv("../metadata.csv")
 
 row.names(meta) <- meta[,1]
 
 ```
 
 
-```{r Merge Gene Counts, echo=F}
+```{r Merge Gene Counts, echo=FALSE, include=FALSE, results='hide'}
+
 
 File_Num <- length(ALLTHEFILES) 
 
 # Make first dataset into starting dataframe
-ALLTHEGENES <- read.csv(ALLTHEFILES[ 1 ], sep = "\t", header = F, 
+ALLTHEGENES <- read.csv(paste(countsDir, "/", ALLTHEFILES[ 1 ], sep=""), sep = "\t", header = F, 
                         col.names = c("Genes", regmatches(ALLTHEFILES[ 1 ], regexec("[1-6]_2008[0-9]+_[0-9]_[A-Z]+[0-9]", ALLTHEFILES[ 1 ]))))
 
 # Remove X from name of column 2
@@ -62,91 +68,383 @@ for( X in c( 2:File_Num )){ #start at 2 because first dataset already in
 
   File_Search <- regexec("[1-6]_2008[0-9]+_[0-9]_[A-Z]+[0-9]", ALLTHEFILES[ X ])
   File_Name <- regmatches(ALLTHEFILES[ X ], File_Search)
-  Temp_File <- read.csv(ALLTHEFILES[ X ], sep = "\t", header = F)
+  Temp_File <- read.csv(paste(countsDir, "/", ALLTHEFILES[ X ], sep=""), sep = "\t", header = F)
   colnames(Temp_File) <- c("Genes", File_Name)
   ALLTHEGENES <- inner_join( ALLTHEGENES, Temp_File )
   
 }
+ALLTHEGENES <- filter(ALLTHEGENES, grepl("gene", Genes))
 
 row.names(ALLTHEGENES) <- ALLTHEGENES[,1]
 
 
+
 ```
 
-##DESeq2
 
-`DESeq2` does a lot of processing automagically, and it is the most complex of the 3 approaches. It estimates the dispersion of the data similarly to `edgeR`, but then normalises using 'shrinkage'; adjusting the estimate on a gene-by-gene basis by comparing the dispersion of each gene with the group-level dispersion.
-
-```{r modelling with DESeq2, echo=FALSE, results='hide', message=FALSE}
+```{r modeling with DESeq2, echo=FALSE, results='hide', include=FALSE}
 
 # DESeq2 uses the `expressionset` data format, so the data needs to be reformatted to fit:
-raph.exprs <- select(ALLTHEGENES, contains("_"))
+
+raph.exprs <-  select(ALLTHEGENES, contains("_"))
 
 raph.groups <- select(meta, FlowCell, Date, SampleInFC, ExID, Location, Line, SampleInLine)
 
-raph.meta <- data.frame( description=c( "High",
-                                        "Low") )
+raph.groups$FlowCell <- factor(raph.groups$FlowCell)
+
+raph.groups$Line <- relevel(raph.groups$Line, ref="Low")
+
+raph.meta <- data.frame( description=c( "Sequencing Flowcell", "Sequencing Date", "Sample number in flowcell", "Sample Name", "Growth location of selection line", "High or Low selection", "Sample number in selection line") )
 
 raph.est <- ExpressionSet( assayData=as.matrix(raph.exprs),
-                           phenoData=new( "AnnotatedDataFrame", data=raph.groups))
-                                          #,
-                                          #varMetadata=raph.meta ))
+                           phenoData=new( "AnnotatedDataFrame",
+                           data=raph.groups, varMetadata=raph.meta ))
 
-# Create design matrix
-design <- model.matrix(~ pData(raph.est)$Line )
+
 
 # Create DESeq2 datasets
-raph.DES <- DESeqDataSetFromMatrix(countData = exprs( raph.est ), colData = pData( raph.est ), design = ~ Line )
+## One with no interactions
+raph.DES <- DESeqDataSetFromMatrix(countData = exprs( raph.est ), colData = pData( raph.est ), design = ~ FlowCell + Location + Line )
+
 raph.DES <- DESeq( raph.DES )
 
+#Remove low count genes
+raph.DES <- estimateSizeFactors(raph.DES)
+nc <- counts(raph.DES, normalized=TRUE)
+filter <- rowSums(nc >= 10) >= 2
+raph.DES <- raph.DES[filter,]
+
+## One with interactions
+raphInt.DES <- DESeqDataSetFromMatrix(countData = exprs( raph.est ), colData = pData( raph.est ), design = ~ Location:Line + FlowCell + Location + Line )
+
+#Remove low count genes
+raphInt.DES <- estimateSizeFactors(raphInt.DES)
+nc <- counts(raphInt.DES, normalized=TRUE)
+filter <- rowSums(nc >= 10) >= 2
+raphInt.DES <- raphInt.DES[filter,]
+
+raphInt.DES  <- DESeq( raphInt.DES , betaPrior = FALSE)
+
+#raphInt.DES <- estimateSizeFactors(raphInt.DES)
+#raphInt.DES <- estimateDispersions(raphInt.DES)
+#raphInt.DES <- nbinomWaldTest(raphInt.DES, maxit=500)
+
+```
+
+
+```{r contrasts with DESeq2, echo=FALSE, results='hide', include=FALSE}
+
+## DESeq2 - High vs Low, NO interaction
+## contrast=c(column, numerator, denominator)
+results_hvl <- results( raph.DES, contrast=c("Line", "High", "Low"), cooksCutoff=FALSE, independentFiltering=FALSE, addMLE=TRUE)
+
+  results_hvl$threshold <- as.logical( results_hvl$padj < p.threshold )
+    genes_hvl <- row.names( results_hvl )[ which( results_hvl$threshold )]
+
+results_hvl <- results_hvl[order(results_hvl$padj),]   
+
+## DESeq2 - High vs Low, WITH interaction
+## contrast=c(column, numerator, denominator)
+Intresults_hvl <- results( raphInt.DES, contrast=c("Line", "High", "Low"), cooksCutoff=FALSE, independentFiltering=FALSE)
+
+  Intresults_hvl$threshold <- as.logical( Intresults_hvl$padj < p.threshold )
+    Intgenes_hvl <- row.names( Intresults_hvl )[ which( Intresults_hvl$threshold )]
+
+Intresults_hvl <- Intresults_hvl[order(Intresults_hvl$padj),]   
+ 
+```
+
+#Expression Data
+
+##All by All heatmap
+
+In all the following heatmaps, samples/genes are clustered by Euclidian distance of variance stablizing transformed gene counts (this removed the dependance of variance on mean, and flattens out the variance across the dataset, which makes the heatmaps a little easier to read)
+
+A heatmap of expression levels for all genes in all individuals shows that the overall expression is very similar across individuals
+
+```{r PlainLineHeatmap, echo=FALSE}
+select <- order(rowMeans(counts(raph.DES,normalized=TRUE)),decreasing=TRUE)
+
+df <- as.data.frame(colData(raph.DES)[,c("Line","Location")])
+
+vsd <- varianceStabilizingTransformation(raph.DES, blind=FALSE)
+
+pheatmap(assay(vsd)[select,], cluster_rows=FALSE, show_rownames=FALSE, cluster_cols=FALSE, annotation_col=df)
+
+```
+
+##Top 50 heatmap
+Heatmap of modeled expression levels of 50 most highly expressed genes in all individuals. 
+
+This unclustered graph shows that there are differences in expression among the more highly expressed genes, although there are no obvious broad patterns between High vs Low or Reed vs KBS.
+
+
+```{r MiniPlainLineHeatmap, echo=FALSE}
+
+select50 <- order(rowMeans(counts(raph.DES,normalized=TRUE)),decreasing=TRUE)[1:50]
+
+pheatmap(assay(vsd)[select50,], cluster_rows=F, show_rownames=F, cluster_cols=F, annotation_col=df)
+
+```
+
+##Clustered Top 50 heatmap
+
+Clustering that same heatmap does show some structure, however read counts seem to be much more correlated with Location than with Line. In particular, the upper left corner with a tight cluster of down-regulated genes is four plants from Reed, but has both phenotypes.
+
+```{r MiniPlainClusterLineHeatmap, echo=FALSE}
+
+pheatmap(assay(vsd)[select50,], cluster_rows=T, show_rownames=FALSE, cluster_cols=T, annotation_col=df)
+
+```
+
+##Sample vs Sample heatmap
+
+This graph sample heatmap echos the gene heatmaps in that there is little Low vs High structure to cluster out individuals by. This map is clustered, however the clusters are not very strong.
+
+```{r PlainSampleHeatmap, echo=FALSE}
+
+sampleDists <- dist(t(assay(vsd)))
+sampleDistMatrix <- as.matrix(sampleDists)
+rownames(sampleDistMatrix) <- paste(vsd$Line, vsd$Location, sep="")
+colnames(sampleDistMatrix) <- NULL
+colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
+pheatmap(sampleDistMatrix,
+         clustering_distance_rows=sampleDists,
+         clustering_distance_cols=sampleDists,
+         cluster_rows = T,
+         cluster_cols = T,
+         col=colors)
+
+```
+
+##Sample vs Sample PCA
+
+First two components of a PCA of the same normalized distance matrix used in the previous heatmap. Its obvious that the eigenvectors are not directly capturing High vs Low, however it appears that PC1 and PC2 are partially clustering KBS vs Reed.
+
+```{r plainPCA, echo=FALSE}
+vsd_df <- as.data.frame(t(assay(vsd)[select,]))
+df$name <- rownames(df)
+
+plotPCA(vsd, intgroup=c("Line", "Location"))
+
+#pca_vsd <- prcomp( vsd_df )  #index here to remove 'not_featured'
+#pca_vsd_lab <- as.data.frame( pca_vsd$x ) %>% 
+#                  mutate(name=rownames(pca_vsd$x)) %>%
+#                  inner_join( df )
+
+#plot(pca_vsd_lab$PC1, pca_vsd_lab$PC2)
+
+
+```
+
+##Sample vs Sample linear discriminant analysis
+
+Comparison of the first three dfs of the same same normalized distance matrix. This model found some variables that are collinear, which suggests that some gene expression profiles are predictive of other genes.
+
+```{r lda, echo=FALSE, include=FALSE}
+
+vsd_df$name <- rownames(vsd_df)
+
+vsd_lda <- inner_join(vsd_df, df)
+# lda( as.matrix(vsd_lda[, 1:80523 ]) ~ Line + Location, data=vsd_lda )
+vsd_lda_m <- lda( Line:Location ~ as.matrix(vsd_lda[, 1:32791 ]), data=vsd_lda )
+
+str(vsd_lda_m)
+
+plot(vsd_lda_m)
+  
+```
+
+
+#DESeq2
+We're using `DESeq2` to estimate differential gene expression between the high and low anther exertion lines. It estimates the dispersion of the data similarly to `edgeR`, but then normalises using 'shrinkage'; adjusting the estimate on a gene-by-gene basis by comparing the dispersion of each gene with the group-level dispersion.
+
+We have `r length(colnames(ALLTHEGENES))-1` individuals, with reads aligned to `r length(ALLTHEGENES$Genes)` gene models. 
+
+##Modeling
+`DESeq2` uses a modified design matrix that allows it do perform shrinkage analysis. This modification results in the intercept being the midpoint between the two predictors of interest, and makes the results table increasingly un-interpretable with increasing model complexity. Ideally, we would like to model expression as:
+
+`~ Location*Line + FlowCell + Location +  Line`
+
+Where Line (High or Low) is the predictor of interest. Location accounts for differences due to lines being grown at Reed vs KBS. Due to the experimental setup, FlowCell is perfectly confounded with the date of the sequencing run and accounts for differences due to sequencing runs. Location*Line accounts for any interactions between selection line and rearing location.
+
+Unfortunatly, we cannot run this model *and* estimate Log2 fold change shrinkage. Essentially, the way `DESeq2` is written, the modified model matrix can't handle interaction terms. This is partially just a problem of interpretation, the model will acutally run, but the output is incomprehensible, but also mathmatical, as the model is now attempting to shrink the group mean estimates to zero rather than trying to shrink the estimated differences to zero. There are three possible solutions to this:
+
+  1. Make a pseudo-interaction term to call directly
+  2. Drop the interaction term
+  3. Use the interaction term, and revert to standard model matrices
+
+###Psuedo-interaction  
+Option 1 is the preferred method of the `DESeq2` authors, but won't work for our dataset. If we make a new, four level factor that is ReedHigh, ReedLow, KBSHigh, KBSLow to look for interaction effects, and run the model:
+
+`~ LocationLine + FlowCell + Location +  Line`
+
+LocationLine will be perfectly confounded with Location and Line, because KBS plants were never grown at Reed, High is never Low, etc. We *could* use this method to model other interactions, like LineFlowCell, but not this one.
+
+###Drop interaction
+Option 2 may give reasonable results, we would lose the ability to find genes that have interaction effects that cancel each other out, however we should have increased ability to detect outliers because the shrinkage analysis will work as designed. 
+###Use interaction
+Option 3 may also give reasonable results, however, we will lose Log2 fold shrinkage, so fold change will be over-estimated in some cases. However, this option would ensure that any interaction effects are modeled out of the final Line contrast, which may mean that we can find differentially expressed genes that would have otherwise been hidden by interactions.
+
+I'm comparing the results of Option 2 and Option 3.
+
+##Results
+
+###No Interaction, shrunken log2 fold change
+Model:  
+
+`~ FlowCell + Location + Line`  (no interaction term)
+
+This model found `r sum(results_hvl$padj < p.threshold, na.rm = TRUE)` differentially expressed genes with a p value < .05
+
+####Summary Information from model and graph of dispersion shrinkage
+```{r PlainSummaryplots, echo=FALSE}
+#Summary of modeled values that meet the specified adjusted p-value cutoff
+summary( results_hvl, alpha=p.threshold)
+    
 # Plot dispersion estimates
 plotDispEsts( raph.DES )
+```
+
+####Log2 fold change
+Since this model doesn't have an interaction term, the log2 fold change estimates are shrunken, and we can compare the shrunken and unshrunken estimates. Here, as expected, the lowest estimates are pulled much closer to the midline of the graph for the shrunken values. However, the model doesn't seem to be over-shrinking, as there are still many signifigant (red) values, including some that fall outside the plot (triangles).
+
+```{r MAplots, echo=FALSE}
+plotMA( results_hvl, MLE=TRUE, main="unshrunken LFC", ylim=c(-2,2) )
+
+plotMA( results_hvl, MLE=FALSE, main="Shrunken LFC", ylim=c(-2,2) )
 
 ```
 
-## Contrasts with DESeq2
 
-```{r contrasts with DESeq2, echo=FALSE, results='hide'}
 
-## DESeq2 - High vs Low
-deseq2_results_hvl <- results( raph.DES, contrast=list( "LineHigh", "LineLow" ), cooksCutoff=FALSE, independentFiltering=FALSE )
+##With Interaction, unshrunken log2 fold change
 
-  deseq2_results_hvl$threshold <- as.logical( deseq2_results_hvl$padj < p.threshold )
+Model  ~ Location:Line + FlowCell + Location + Line  (no interaction term)
+
+This model found `r sum(Intresults_hvl$padj < p.threshold, na.rm = TRUE)` differentially expressed genes with a p value < .05
+
+
+```{r Intplots, echo=FALSE}
+#Summary of modeled values that meet the specified adjusted p-value cutoff
+summary( Intresults_hvl, alpha=p.threshold)
+    
+# Plot dispersion estimates
+plotDispEsts( raphInt.DES )
+
+```
+
+###Log2 fold change
+Since this model has an interaction term, the log2 fold change estimates are unshrunken. As expected, these estimates are quite large, especially in the genes with lower overall expression.
+
+```{r IntMAplot, echo=FALSE}
+plotMA( Intresults_hvl, main="unshrunken LFC", ylim=c(-2,2) )
+
+```
+
+## Gene Lists
+```{r PlainGeneList, echo=FALSE, results='hide'}
+
+results_hvl_df <- data.frame( results_hvl )
+  results_hvl_df$gene_name <- row.names( results_hvl )
+results_hvl_df$FC <- logratio2foldchange(results_hvl_df$log2FoldChange)
+
+results_hvl_df <- filter(results_hvl_df, !is.na(log2FoldChange))
+
+results_hvl_df$ABlog2FoldChange <- abs(results_hvl_df$log2FoldChange)
+
+write.csv( results_hvl_df, outputfilenamePlain, quote=FALSE, row.names=FALSE)
+
+
+
+```
+
+```{r IntGeneList, echo=FALSE, results='hide'}
+
+Intresults_hvl_df <- data.frame( Intresults_hvl )
+  Intresults_hvl_df$gene_name <- row.names( Intresults_hvl )
+  
+Intresults_hvl_df$FC <- logratio2foldchange(Intresults_hvl_df$log2FoldChange)
+
+Intresults_hvl_df <- filter(Intresults_hvl_df, !is.na(log2FoldChange))
+
+Intresults_hvl_df$ABlog2FoldChange <- abs(Intresults_hvl_df$log2FoldChange)
+
+write.csv( Intresults_hvl_df, outputfilenameInteraction, quote=FALSE, row.names=FALSE )
+
+```
+
+
+```{r DisplayGenes, echo=FALSE}
+miniresults <- cbind( head(results_hvl_df[, c("gene_name", "log2FoldChange", "padj")], 10), head(Intresults_hvl_df[, c("gene_name", "log2FoldChange", "padj")], 10))
+
+miniresults
+
+#intersect(miniresults[,1], miniresults[,4])
+
+```
+
+Comparison of top 10 highest adjusted p-value genes from "No interaction" model (top) versus the interaction, but no shrinkage model (bottom). Only one of the top 10 genes, `r intersect(miniresults[,1], miniresults[,4])`, is in both lists.
+
+
+```{r CompareGeneLists, echo=FALSE}
+tempresults <- cbind( head(results_hvl_df[, c("gene_name", "log2FoldChange", "padj")], 100), head(Intresults_hvl_df[, c("gene_name", "log2FoldChange", "padj")], 100))
+
+```
+
+In the top 100 highest adjusted p-value genes, there are just `r length(intersect( tempresults[,1], tempresults[,4]))`:
+
+```{r}
+intersect( tempresults[,1], tempresults[,4])
+```
+
+
+
+So the models are giving very different gene sets, but it's not obvious which set is 'better'. Given the splay of log2 fold change values for the model with the interaction term, it is probably better to use the gene list from the model with shrinkage, and just accept that we may miss some genes that had strong interaction effects.
+
+Plotted below are normalized counts for the four most signifigantly different genes, Reed plants are red, KBS plants black.
+
+####Example count plot, highly signifigant genes
+```{r TopPvalue, echo=FALSE}
+par(mfrow=c(2,2))
+
+for( names in row.names(results_hvl[order(results_hvl$padj),][1:4,])){
+plotCounts(raph.DES, gene= names, intgroup="Line", col=raph.DES$Location)
+}
+```
+
+Similarly, these are the counts for the four genes with the highest fold change.
+
+####Example count plot, highly different genes
+```{r TopFC, echo=FALSE}
+
+par(mfrow=c(2,2))
+
+for( names in row.names(results_hvl[order(results_hvl$log2FoldChange),][1:4,])){
+plotCounts(raph.DES, gene= names, intgroup="Line", col=raph.DES$Location)
+}
+```
+
+Based on these graphs, there does seem to be a large effect of location, however the lines don't show much evidence of opposing genetic effects. So, dropping the interaction may not adversly effect results.
+
+```{r testing, eval=FALSE, echo=FALSE}
+
+deseq2_results_rvk <- results( raph.DES, contrast=list( "LocationReed", "LocationKBS" ), cooksCutoff=FALSE, independentFiltering=FALSE )
+
+deseq2_results_hvl$threshold <- as.logical( deseq2_results_hvl$padj < p.threshold )
     deseq2_genes_hvl <- row.names( deseq2_results_hvl )[ which( deseq2_results_hvl$threshold )]
+
     
 
-      
+deseq2_results_rvk_df <- data.frame( deseq2_results_rvk )
+  deseq2_results_rvk_df$gene_name <- row.names( deseq2_results_rvk )
+deseq2_results_rvk_df$FC <- logratio2foldchange(deseq2_results_rvk_df$log2FoldChange)
 
+deseq2_results_rvk_df <- filter(deseq2_results_rvk_df, !is.na(log2FoldChange))
+
+deseq2_results_rvk_df$ABlog2FoldChange <- abs(deseq2_results_rvk_df$log2FoldChange)
+
+write.csv( deseq2_results_rvk_df, outputfilename, quote=FALSE, row.names=FALSE )
 
 ```
 
-```{r gene lists from DESeq2, echo=FALSE, results='hide'}
-
-deseq2_results_hvl_df <- data.frame( deseq2_results_hvl )
-  deseq2_results_hvl_df$gene_name <- row.names( deseq2_results_hvl )
-deseq2_results_hvl_df$FC <- logratio2foldchange(deseq2_results_hvl_df$log2FoldChange)
-
-deseq2_results_hvl_df <- filter(deseq2_results_hvl_df, !is.na(log2FoldChange))
-
-deseq2_results_hvl_df$ABlog2FoldChange <- abs(deseq2_results_hvl_df$log2FoldChange)
-
-write.csv( deseq2_results_hvl_df, outputfilename, quote=FALSE, row.names=FALSE )
-```
-
-ggplot(deseq2_results_hvl, aes(log2FoldChange, baseMean), size = 8) + geom_point()
-
-
-test <- deseq2_results_hvl[1:5,]
-
-test$FC <- exp(test$log2FoldChange)
-
-
-a <- 1:10
-b <- 10:1
-fc <- b/a
-df <- data.frame(a, b, fc, a.greaterthan.b = a > b)
-df
-ggplot(df, aes(a, fc, colour = a.greaterthan.b), size = 8) + geom_point()
-df$log2fc <- log2(fc)
-df$newFC <- 2^df$log2fc
-df$fcp <- logratio2foldchange(df$log2fc)
