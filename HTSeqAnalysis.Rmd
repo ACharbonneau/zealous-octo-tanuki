@@ -13,6 +13,10 @@ output:
 #Global parameters for modeling:
 
 ```{r Global}
+# Get libraries on HPC
+
+export R_LIBS_USER=~/R/library
+
 #Setting a reasonable p-value threshold to be used throughout
 p.threshold <- 0.05
 
@@ -20,6 +24,7 @@ countsDir <- file.path("../Kitashiba2014")
 outputfilenamePlain <- ("../DEseqOutput/Kitashiba2014_deseq2_expr_changes_HvL.csv")
 outputfilenameInteraction <- ("../DEseqOutput/Kitashiba2014_deseq2_expr_changes_Int_HvL.csv")
 
+#Also have to change gene number indexing on line 251 or the lda won't run
 
 ```
 
