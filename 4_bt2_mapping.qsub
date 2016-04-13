@@ -19,7 +19,6 @@ cd ${PBS_O_WORKDIR} #Go to directory with sequencing files
 
 filelist=(*fastq.edit) #Get a list of all sequencing files
 
-#thisfile=${filelist[${n}]}
 
 indiv=${filelist[${PBS_ARRAYID}]} #assign indiv to be current sequence file
 
@@ -29,7 +28,6 @@ cd ${PBS_O_WORKDIR}/${bsname}
 
 module load bowtie2/2.2.6
 
-#LIST=`echo ${indiv} | sed s/" "/,/g`
 
 #Then launch metadata collector
 qsub ../scripts/echo.qsub -N ${PBS_JOBNAME}.metadata -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",gffi="${gffi}
