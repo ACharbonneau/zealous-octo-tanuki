@@ -15,11 +15,12 @@
 
 module load SAMTools/1.2
 
-cd ${PBS_O_WORKDIR}
+cd ${PBS_O_WORKDIR} || exit
 
 # Filters out any mapping qualities less than 30
 
 samtools view -q 30 -b -T ${genome} ${job}.sam > ${job}.bam
+
 
 samtools sort ${job}.bam ${job}.sorted
 

@@ -1,3 +1,5 @@
+#! /bin/bash
+
 echo "1. Getting data"
 cp /mnt/research/radishGenomics/OriginalSequencingFiles/2008_AE_RNAseq/cel*/*.tar.gz .
 

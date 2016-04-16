@@ -14,7 +14,7 @@
 # -r n : tells it not to re-run the script in the case of an error (so it doesn't overwrite any results generated$
 # -t 0-? : job numbers for array submission
 
-cd ${PBS_O_WORKDIR} #Go to directory with sequencing files
+cd ${PBS_O_WORKDIR} || exit #Go to directory with sequencing files
 
 
 filelist=(*fastq.edit) #Get a list of all sequencing files

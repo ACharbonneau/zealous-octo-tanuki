@@ -21,10 +21,10 @@ fi
 
 
 
-cd ${PBS_O_WORKDIR}
+cd ${PBS_O_WORKDIR} || exit
 
 
-mkdir ${PBS_JOBNAME} #make a folder for each genome you're mapping to 
+mkdir ${PBS_JOBNAME} #make a folder for each genome you're mapping to
 
 
 module load bowtie2/2.2.6
