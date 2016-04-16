@@ -17,10 +17,12 @@ module load SAMTools/1.2
 
 cd ${PBS_O_WORKDIR}
 
+# Filters out any mapping qualities less than 30
+
 samtools view -q 30 -b -T ${genome} ${job}.sam > ${job}.bam
 
 samtools sort ${job}.bam ${job}.sorted
 
 samtools index ${job}.sorted.bam
 
-qsub ../scripts/6_htseq.qsub -N ${bsname}.HTseq -v genome="${genome}",index="${index}",gff="${gff}",bsname="${bsname}",indiv="${indiv}",job="${job}",gffi="${gffi}
+qsub ../scripts/6_htseq.qsub -N ${bsname}.HTseq -v genome="${genome}",index="${index}",gff="${gff}",bsname="${bsname}",indiv="${indiv}",job="${job}",gffi="${gffi}"
