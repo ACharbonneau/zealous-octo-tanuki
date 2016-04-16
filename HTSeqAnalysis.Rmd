@@ -10,12 +10,25 @@ output:
     
 ---
 
-#Global parameters for modeling:
+#Global parameters for modeling
 
 ```{r Global}
-# Get libraries on HPC
 
-export R_LIBS_USER=~/R/library
+
+#Setting a reasonable p-value threshold to be used throughout
+p.threshold <- 0.05
+
+countsDir <- file.path("../Moghe2014")
+outputfilenamePlain <- ("../DEseqOutput/Moghe2014_deseq2_expr_changes_HvL.csv")
+outputfilenameInteraction <- ("../DEseqOutput/Moghe2014_deseq2_expr_changes_Int_HvL.csv")
+
+#For other genomes, also have to change gene number indexing on line 251 or the lda won't run
+
+#Reference level is Low
+```
+
+```{r GlobalKitashiba, echo=FALSE, eval=FALSE}
+
 
 #Setting a reasonable p-value threshold to be used throughout
 p.threshold <- 0.05
@@ -24,8 +37,9 @@ countsDir <- file.path("../Kitashiba2014")
 outputfilenamePlain <- ("../DEseqOutput/Kitashiba2014_deseq2_expr_changes_HvL.csv")
 outputfilenameInteraction <- ("../DEseqOutput/Kitashiba2014_deseq2_expr_changes_Int_HvL.csv")
 
-#Also have to change gene number indexing on line 251 or the lda won't run
+#For other genomes, also have to change gene number indexing on line 251 or the lda won't run
 
+#Reference level is Low
 ```
 
 
@@ -36,12 +50,16 @@ require(dplyr)
 require(DESeq2)
 require(gtools)
 require(pheatmap)
+require(cowplot)
 require(RColorBrewer)
+
 
 ```
 
 
 ```{r Data, echo=FALSE}
+sessionInfo()
+
 #Import all of the count files from mapping AE reads to a single genome
 
 ALLTHEFILES <- list.files(countsDir, pattern = "*.counts.txt")
@@ -78,8 +96,8 @@ for( X in c( 2:File_Num )){ #start at 2 because first dataset already in
   ALLTHEGENES <- inner_join( ALLTHEGENES, Temp_File )
   
 }
-ALLTHEGENES <- filter(ALLTHEGENES, grepl("gene", Genes))
-
+#ALLTHEGENES <- filter(ALLTHEGENES, grepl("gene", Genes))
+ALLTHEGENES <- filter(ALLTHEGENES, grepl("mRNA", Genes))
 row.names(ALLTHEGENES) <- ALLTHEGENES[,1]
 
 
@@ -120,7 +138,7 @@ filter <- rowSums(nc >= 10) >= 2
 raph.DES <- raph.DES[filter,]
 
 ## One with interactions
-raphInt.DES <- DESeqDataSetFromMatrix(countData = exprs( raph.est ), colData = pData( raph.est ), design = ~ Location:Line + FlowCell + Location + Line )
+raphInt.DES <- DESeqDataSetFromMatrix(countData = exprs( raph.est ), colData = pData( raph.est ), design = ~ FlowCell + Location + Line + Location:Line )
 
 #Remove low count genes
 raphInt.DES <- estimateSizeFactors(raphInt.DES)
@@ -141,25 +159,32 @@ raphInt.DES  <- DESeq( raphInt.DES , betaPrior = FALSE)
 
 ## DESeq2 - High vs Low, NO interaction
 ## contrast=c(column, numerator, denominator)
-results_hvl <- results( raph.DES, contrast=c("Line", "High", "Low"), cooksCutoff=FALSE, independentFiltering=FALSE, addMLE=TRUE)
+
+results_hvl <- results( raph.DES, contrast=c("Line", "High", "Low"), cooksCutoff=FALSE, independentFiltering=TRUE, addMLE=TRUE, pAdjustMethod="BH", alpha = p.threshold)
 
   results_hvl$threshold <- as.logical( results_hvl$padj < p.threshold )
     genes_hvl <- row.names( results_hvl )[ which( results_hvl$threshold )]
 
 results_hvl <- results_hvl[order(results_hvl$padj),]   
 
+summary(results_hvl, alpha= p.threshold)
+
 ## DESeq2 - High vs Low, WITH interaction
 ## contrast=c(column, numerator, denominator)
-Intresults_hvl <- results( raphInt.DES, contrast=c("Line", "High", "Low"), cooksCutoff=FALSE, independentFiltering=FALSE)
+Intresults_hvl <- results( raphInt.DES, contrast=c("Line", "High", "Low"), cooksCutoff=FALSE, independentFiltering=TRUE, pAdjustMethod="BH", alpha = p.threshold)
 
   Intresults_hvl$threshold <- as.logical( Intresults_hvl$padj < p.threshold )
     Intgenes_hvl <- row.names( Intresults_hvl )[ which( Intresults_hvl$threshold )]
 
 Intresults_hvl <- Intresults_hvl[order(Intresults_hvl$padj),]   
+
+summary(Intresults_hvl, alpha= p.threshold)
  
 ```
 
 #Expression Data
+
+Some exploratory plots of un-modeled gene counts.
 
 ##All by All heatmap
 
@@ -167,46 +192,59 @@ In all the following heatmaps, samples/genes are clustered by Euclidian distance
 
 A heatmap of expression levels for all genes in all individuals shows that the overall expression is very similar across individuals
 
-```{r PlainLineHeatmap, echo=FALSE}
+```{r PlainLineHeatmap, echo=FALSE, fig.path="../figures/", fig.keep="last", fig.width=11}
 select <- order(rowMeans(counts(raph.DES,normalized=TRUE)),decreasing=TRUE)
 
 df <- as.data.frame(colData(raph.DES)[,c("Line","Location")])
 
-vsd <- varianceStabilizingTransformation(raph.DES, blind=FALSE)
+vsd <- varianceStabilizingTransformation(raph.DES, blind=TRUE)
 
 pheatmap(assay(vsd)[select,], cluster_rows=FALSE, show_rownames=FALSE, cluster_cols=FALSE, annotation_col=df)
 
 ```
 
-##Top 50 heatmap
-Heatmap of modeled expression levels of 50 most highly expressed genes in all individuals. 
+##Top 500 heatmap
+Heatmap of modeled expression levels of 500 most highly expressed genes in all individuals. 
 
 This unclustered graph shows that there are differences in expression among the more highly expressed genes, although there are no obvious broad patterns between High vs Low or Reed vs KBS.
 
 
-```{r MiniPlainLineHeatmap, echo=FALSE}
+```{r MiniPlainLineHeatmap, echo=FALSE, fig.path="../figures/", fig.keep="last", fig.width=11}
 
-select50 <- order(rowMeans(counts(raph.DES,normalized=TRUE)),decreasing=TRUE)[1:50]
+select500 <- order(rowMeans(counts(raph.DES,normalized=TRUE)),decreasing=TRUE)[1:500]
 
-pheatmap(assay(vsd)[select50,], cluster_rows=F, show_rownames=F, cluster_cols=F, annotation_col=df)
+pheatmap(assay(vsd)[select500,], cluster_rows=F, show_rownames=F, cluster_cols=F, annotation_col=df)
+
+```
+
+##Clustered Top 500 heatmap
+
+Clustering that same heatmap does show some structure, however read counts seem to be much more correlated with Location than with Line. In particular, the upper left corner with a tight cluster of down-regulated genes is four plants from Reed, but has both phenotypes. We'll have to factor out Location in the model.
+
+```{r MiniPlainClusterLineHeatmap, echo=FALSE, fig.path="../figures/", fig.keep="last", fig.width=11}
+
+pheatmap(assay(vsd)[select500,], cluster_rows=T, show_rownames=FALSE, cluster_cols=T, annotation_col=df, clustering_distance_rows="euclidean", clustering_distance_cols="euclidean")
 
 ```
 
-##Clustered Top 50 heatmap
+##Clustered Top 500 heatmap with Flowcell
 
-Clustering that same heatmap does show some structure, however read counts seem to be much more correlated with Location than with Line. In particular, the upper left corner with a tight cluster of down-regulated genes is four plants from Reed, but has both phenotypes.
+Adding FlowCell to the clustered heatmap has very little effect, i.e. there doesn't appear to be a lot of systematic expression level difference due to sequencing run. We could probably get away without FlowCell in the model if we need to lose parameters.
 
-```{r MiniPlainClusterLineHeatmap, echo=FALSE}
+```{r MiniPlainClusterLineHeatmapFC, echo=FALSE, fig.path="../figures/", fig.keep="last", fig.width=11}
 
-pheatmap(assay(vsd)[select50,], cluster_rows=T, show_rownames=FALSE, cluster_cols=T, annotation_col=df)
+dfFC <- as.data.frame(colData(raph.DES)[,c("Line","Location", "FlowCell")])
+
+pheatmap(assay(vsd)[select500,], cluster_rows=T, show_rownames=FALSE, cluster_cols=T, annotation_col=dfFC, clustering_distance_rows="euclidean", clustering_distance_cols="euclidean")
 
 ```
+
 
 ##Sample vs Sample heatmap
 
-This graph sample heatmap echos the gene heatmaps in that there is little Low vs High structure to cluster out individuals by. This map is clustered, however the clusters are not very strong.
+This sample heatmap echos the gene heatmaps in that there is little Low vs High structure to cluster out individuals by, and a relatively large effect of location.  This map is clustered, and although the clusters are not very strong, Reed and KBS clearly seperate.
 
-```{r PlainSampleHeatmap, echo=FALSE}
+```{r PlainSampleHeatmap, echo=FALSE, fig.path="../figures/", fig.keep="last", fig.width=11}
 
 sampleDists <- dist(t(assay(vsd)))
 sampleDistMatrix <- as.matrix(sampleDists)
@@ -214,8 +252,8 @@ rownames(sampleDistMatrix) <- paste(vsd$Line, vsd$Location, sep="")
 colnames(sampleDistMatrix) <- NULL
 colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
 pheatmap(sampleDistMatrix,
-         clustering_distance_rows=sampleDists,
-         clustering_distance_cols=sampleDists,
+         clustering_distance_rows="euclidean",
+         clustering_distance_cols="euclidean",
          cluster_rows = T,
          cluster_cols = T,
          col=colors)
@@ -224,14 +262,17 @@ pheatmap(sampleDistMatrix,
 
 ##Sample vs Sample PCA
 
-First two components of a PCA of the same normalized distance matrix used in the previous heatmap. Its obvious that the eigenvectors are not directly capturing High vs Low, however it appears that PC1 and PC2 are partially clustering KBS vs Reed.
+First two components of a PCA of the same normalized distance matrix used in the previous heatmap. These two vectors capture nearly 40% of the variance, but this seems to be mostly capturing Reed/KBS. 
 
-```{r plainPCA, echo=FALSE}
+```{r plainPCA, echo=FALSE, fig.path="../figures/", fig.keep="last", fig.width=11}
 vsd_df <- as.data.frame(t(assay(vsd)[select,]))
 df$name <- rownames(df)
 
-plotPCA(vsd, intgroup=c("Line", "Location"))
-
+cowplot::plot_grid( plotPCA(vsd, intgroup="Location"),
+                   plotPCA(vsd, intgroup="Line"),
+                   plotPCA(vsd, intgroup=c( "Location", "Line")),
+                           align="c", ncol=2)
+                   
 #pca_vsd <- prcomp( vsd_df )  #index here to remove 'not_featured'
 #pca_vsd_lab <- as.data.frame( pca_vsd$x ) %>% 
 #                  mutate(name=rownames(pca_vsd$x)) %>%
@@ -242,11 +283,11 @@ plotPCA(vsd, intgroup=c("Line", "Location"))
 
 ```
 
+
+```{r lda, echo=FALSE, include=FALSE, eval=FALSE}
 ##Sample vs Sample linear discriminant analysis
 
 Comparison of the first three dfs of the same same normalized distance matrix. This model found some variables that are collinear, which suggests that some gene expression profiles are predictive of other genes.
-
-```{r lda, echo=FALSE, include=FALSE}
 
 vsd_df$name <- rownames(vsd_df)
 
@@ -256,8 +297,10 @@ vsd_lda_m <- lda( Line:Location ~ as.matrix(vsd_lda[, 1:32791 ]), data=vsd_lda )
 
 str(vsd_lda_m)
 
+```
+
+```{r Plotlda, echo=FALSE, eval=FALSE, fig.path="../figures/", fig.keep="last", fig.width=11}
 plot(vsd_lda_m)
-  
 ```
 
 
@@ -269,7 +312,7 @@ We have `r length(colnames(ALLTHEGENES))-1` individuals, with reads aligned to `
 ##Modeling
 `DESeq2` uses a modified design matrix that allows it do perform shrinkage analysis. This modification results in the intercept being the midpoint between the two predictors of interest, and makes the results table increasingly un-interpretable with increasing model complexity. Ideally, we would like to model expression as:
 
-`~ Location*Line + FlowCell + Location +  Line`
+`~ Location:Line + FlowCell + Location +  Line`
 
 Where Line (High or Low) is the predictor of interest. Location accounts for differences due to lines being grown at Reed vs KBS. Due to the experimental setup, FlowCell is perfectly confounded with the date of the sequencing run and accounts for differences due to sequencing runs. Location*Line accounts for any interactions between selection line and rearing location.
 
@@ -288,6 +331,7 @@ LocationLine will be perfectly confounded with Location and Line, because KBS pl
 
 ###Drop interaction
 Option 2 may give reasonable results, we would lose the ability to find genes that have interaction effects that cancel each other out, however we should have increased ability to detect outliers because the shrinkage analysis will work as designed. 
+
 ###Use interaction
 Option 3 may also give reasonable results, however, we will lose Log2 fold shrinkage, so fold change will be over-estimated in some cases. However, this option would ensure that any interaction effects are modeled out of the final Line contrast, which may mean that we can find differentially expressed genes that would have otherwise been hidden by interactions.
 
@@ -315,9 +359,9 @@ plotDispEsts( raph.DES )
 Since this model doesn't have an interaction term, the log2 fold change estimates are shrunken, and we can compare the shrunken and unshrunken estimates. Here, as expected, the lowest estimates are pulled much closer to the midline of the graph for the shrunken values. However, the model doesn't seem to be over-shrinking, as there are still many signifigant (red) values, including some that fall outside the plot (triangles).
 
 ```{r MAplots, echo=FALSE}
-plotMA( results_hvl, MLE=TRUE, main="unshrunken LFC", ylim=c(-2,2) )
+plotMA( results_hvl, MLE=TRUE, main="unshrunken LFC", ylim=c(-3,3), alpha=p.threshold )
 
-plotMA( results_hvl, MLE=FALSE, main="Shrunken LFC", ylim=c(-2,2) )
+plotMA( results_hvl, MLE=FALSE, main="Shrunken LFC", ylim=c(-3,3), alpha=p.threshold  )
 
 ```
 
@@ -343,14 +387,14 @@ plotDispEsts( raphInt.DES )
 Since this model has an interaction term, the log2 fold change estimates are unshrunken. As expected, these estimates are quite large, especially in the genes with lower overall expression.
 
 ```{r IntMAplot, echo=FALSE}
-plotMA( Intresults_hvl, main="unshrunken LFC", ylim=c(-2,2) )
+plotMA( Intresults_hvl, main="unshrunken LFC", ylim=c(-3,3), alpha=p.threshold  )
 
 ```
 
 ## Gene Lists
 ```{r PlainGeneList, echo=FALSE, results='hide'}
 
-results_hvl_df <- data.frame( results_hvl )
+results_hvl_df <- data.frame( results_hvl, MLE=T )
   results_hvl_df$gene_name <- row.names( results_hvl )
 results_hvl_df$FC <- logratio2foldchange(results_hvl_df$log2FoldChange)
 
@@ -379,17 +423,36 @@ write.csv( Intresults_hvl_df, outputfilenameInteraction, quote=FALSE, row.names=
 
 ```
 
+```{r MeanExpressionPlots, eval=FALSE, echo=FALSE}
+par(mfrow=c(2,1))
+plot(y = log2(results_hvl$baseMean), x =(log2(results_hvl$baseMean) - results_hvl$log2FoldChange ), 
+    ylab = "mean expression low", xlab = "mean expression high", 
+    main = "Anther Exertion", pch = 20, col ="grey")
+with(results_hvl_df[results_hvl_df$padj <0.05, ],
+    points(y = log2(baseMean),x =(log2(baseMean) - log2FoldChange ),
+    pch=20, col = "black" ))  
+abline(a=0, b=1 , col="blue")
+
+plot(y = results_hvl$log2FoldChange, x =log2(results_hvl$baseMean) , 
+    ylab = "log2 fold change (L/H)", xlab = "mean expression low",
+    main = " MAplot selection differences in AE", pch = 20, col ="grey")
+with(results_hvl_df[results_hvl_df$padj <0.05, ],
+    points(y = log2FoldChange,x = log2(baseMean),
+    pch=20, col = "black" ))  
+abline(a=0, b=0 , col="blue")
+```
+
 
 ```{r DisplayGenes, echo=FALSE}
-miniresults <- cbind( head(results_hvl_df[, c("gene_name", "log2FoldChange", "padj")], 10), head(Intresults_hvl_df[, c("gene_name", "log2FoldChange", "padj")], 10))
+miniresults <- cbind( head(results_hvl_df[, c("gene_name", "log2FoldChange", "padj", "MLE")], 10), head(Intresults_hvl_df[, c("gene_name", "log2FoldChange", "padj")], 10))
 
 miniresults
 
-#intersect(miniresults[,1], miniresults[,4])
+#intersect(miniresults[,1], miniresults[,5])
 
 ```
 
-Comparison of top 10 highest adjusted p-value genes from "No interaction" model (top) versus the interaction, but no shrinkage model (bottom). Only one of the top 10 genes, `r intersect(miniresults[,1], miniresults[,4])`, is in both lists.
+Comparison of top 10 highest adjusted p-value genes from "No interaction" model (top) versus the interaction, but no shrinkage model (bottom). Only one of the top 10 genes, `r intersect(miniresults[,1], miniresults[,5])`, is in both lists.
 
 
 ```{r CompareGeneLists, echo=FALSE}
@@ -397,9 +460,9 @@ tempresults <- cbind( head(results_hvl_df[, c("gene_name", "log2FoldChange", "pa
 
 ```
 
-In the top 100 highest adjusted p-value genes, there are just `r length(intersect( tempresults[,1], tempresults[,4]))`:
+In the top 100 highest adjusted p-value genes, there are just `r length(intersect( tempresults[,1], tempresults[,4]))` genes that appear in both:
 
-```{r}
+```{r, echo=FALSE}
 intersect( tempresults[,1], tempresults[,4])
 ```
 
@@ -434,7 +497,7 @@ Based on these graphs, there does seem to be a large effect of location, however
 
 ```{r testing, eval=FALSE, echo=FALSE}
 
-deseq2_results_rvk <- results( raph.DES, contrast=list( "LocationReed", "LocationKBS" ), cooksCutoff=FALSE, independentFiltering=FALSE )
+deseq2_results_rvk <- results( raph.DES, contrast=list( "LocationReed", "LocationKBS" ), cooksCutoff=FALSE, independentFiltering=TRUE, )
 
 deseq2_results_hvl$threshold <- as.logical( deseq2_results_hvl$padj < p.threshold )
     deseq2_genes_hvl <- row.names( deseq2_results_hvl )[ which( deseq2_results_hvl$threshold )]
@@ -452,4 +515,21 @@ deseq2_results_rvk_df$ABlog2FoldChange <- abs(deseq2_results_rvk_df$log2FoldChan
 write.csv( deseq2_results_rvk_df, outputfilename, quote=FALSE, row.names=FALSE )
 
 ```
+
+#Upcoming analysis
+
+This data is all using the Kitashiba2014. I have two others to align to as well, however, this one is arguably the best of the three, so the others are unlikely to vastly improve the number of mapped reads. It's important to note that although Kitashiba2014 covers more of the actual genome and has a much better N50 than the others, it still has a ridiculous number of contigs. All of these genomes are so fragmented that even the 'best' one still isn't good.
+
+```{r Upcoming, echo=FALSE}
+Measure<- c("# contigs", "N50", "Assembled_length (Mb)","gene models")
+Moghe2014 <- c(64732,10186,253,50974)
+Kitashiba2014 <- c(76592,46262,402,80521)
+Mitsui2015 <- c(72909,7120,384,64657)
+Jeong2016 <- c(38732,19600,371.6,46514)
+
+
+
+as.data.frame(cbind(Measure,Moghe2014,Kitashiba2014,Mitsui2015,Jeong2016))
+```
+
 
