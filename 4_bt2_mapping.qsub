@@ -30,7 +30,7 @@ module load bowtie2/2.2.6
 
 
 #Then launch metadata collector
-qsub ../scripts/echo.qsub -N ${PBS_JOBNAME}.metadata -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",gffi="${gffi}"
+qsub ../scripts/echo.qsub -N ${PBS_JOBNAME}.metadata -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}"
 
 #Run bowtie2
 
@@ -42,4 +42,4 @@ bowtie2 --local -D 15 -R 2 -N 0 -L 20 -i S,1,0.75 -x ${index} -U ../${indiv} -S 
 #Launch samtools
 #cd ${bsname}
 
-qsub ../scripts/5_view_samtools.qsub -N ${bsname}.samtools -v genome="${genome}",index="${index}",gff="${gff}",bsname="${bsname}",indiv="${indiv}",job="${PBS_JOBNAME}",gffi="${gffi}"
+qsub ../scripts/5_view_samtools.qsub -N ${bsname}.samtools -v genome="${genome}",index="${index}",gff="${gff}",bsname="${bsname}",indiv="${indiv}",job="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}"

@@ -22,4 +22,4 @@ cd ${PBS_O_WORKDIR} || exit
 
 module load HTSeq/0.6.1
 
-htseq-count --format=bam --stranded=no -a 10 -i ${gffi} ${job}.sorted.bam ${gff} > ${job}.counts.txt
+htseq-count --format=bam -t ${exon} --stranded=no -a 10 -i ${gffi} ${job}.sorted.bam ${gff} > ${job}.counts.txt
