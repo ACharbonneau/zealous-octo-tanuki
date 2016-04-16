@@ -30,7 +30,7 @@ module load bowtie2/2.2.6
 
 
 #Then launch metadata collector
-qsub ../scripts/echo.qsub -N ${PBS_JOBNAME}.metadata -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",gffi="${gffi}
+qsub ../scripts/echo.qsub -N ${PBS_JOBNAME}.metadata -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",gffi="${gffi}"
 
 #Run bowtie2
 
