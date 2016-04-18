@@ -21,6 +21,6 @@ fi
 cd ${PBS_O_WORKDIR} || exit
 
 module load HTSeq/0.6.1
-echo bsname
+echo ${bsname}
 
 htseq-count --format=bam -t ${exon} --stranded=${stranded} -a 10 -i ${gffi} ${job}.sorted.bam ${gff} > ${job}.counts.txt
