@@ -18,7 +18,7 @@ module load SAMTools/1.2
 cd ${PBS_O_WORKDIR} || exit
 
 # Filters out any mapping qualities less than 30
-echo bsname="${PBS_JOBNAME}"
+echo bsname
 
 samtools view -q 30 -b -T ${genome} ${job}.sam > ${job}.bam
 
