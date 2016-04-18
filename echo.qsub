@@ -29,6 +29,6 @@ echo "Genome is " ${genome}
 echo "BowtieIndex is " ${index}
 echo "GFF file is " ${gff}
 echo "Basename is " ${bsname}
-echo "Mapper is " bowtie2 --version
-echo "Samtools is " samtools --version
-echo "HTSeq is " htseq-count --help | tail -4
+echo "Mapper is " `bowtie2 --version`
+echo "Samtools is " `samtools --version`
+echo "HTSeq is " `htseq-count --help | tail -4`

@@ -35,7 +35,7 @@ qsub ../scripts/echo.qsub -N ${PBS_JOBNAME}.metadata -v genome="${genome}",index
 #Run bowtie2
 
 # Using default mode: search for multiple alignments, report the best one
-
+echo bsname="${PBS_JOBNAME}"
 bowtie2 --local -D 15 -R 2 -N 0 -L 20 -i S,1,0.75 -x ${index} -U ../${indiv} -S ${PBS_JOBNAME}.sam
 
 
