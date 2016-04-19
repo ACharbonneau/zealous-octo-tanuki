@@ -7,13 +7,15 @@ RNAseq Analysis of 2008 anther exertion line sequencing data
 
 2_FastQC.qsub
 
-3_bt2_build.qsub
+3_LaunchBuild.sh
 
-4_bt2_mapping.qsub
+4_bt2_build.qsub
 
-5_view_samtools.qsub
+5_bt2_mapping.qsub
 
-6_htseq.qsub
+6_view_samtools.qsub
+
+7_htseq.qsub
 
 echo.qsub
 
@@ -52,12 +54,20 @@ Runs FastQC on all files.
 
 Calls: nothing
 
-###3_bt2_build.qsub
+###3_LaunchBuild.sh
+Script that has code for auto-submitting the qsubs for 4_bt2_build.qsub with all the
+right options. As well as the genome and gff edits needed to make them work
+
+Calls:
+
+- 4_bt2_build.qsub
+
+###4_bt2_build.qsub
 Builds a Bowtie2 index for a genome, then spawns one mapping operation for every available
 fastq file. This qsub begins auto-submission of several others, so it needs to be submitted
 with variable lists for everything from building to counting reads with HT-seq. Example:
 
->qsub scripts/3_bt2_build.qsub -N <name> -v genome=genome,gff=gf,gffi="<id attribute>",type="<feature type>",strand="<yes/no/reverse>"
+>qsub scripts/4_bt2_build.qsub -N <name> -v genome=genome,gff=gf,gffi="<id attribute>",type="<feature type>",strand="<yes/no/reverse>"
 
 name is a string that will be used for naming all folder & file output
 
@@ -75,9 +85,9 @@ NOTE: Spaces *matter*!
 
 Calls:
 
-- 4_bt2_mapping.qsub
+- 5_bt2_mapping.qsub
 
-###4_bt2_mapping.qsub
+###5_bt2_mapping.qsub
 
 Maps reads for one individual to one genome using Bowtie2
 
@@ -88,16 +98,16 @@ Calls:
 		A series of echo commands that write out the program versions and files used for
 		a given individual for mapping through counting
 
-- 5_view_samtools.qsub
+- 6_view_samtools.qsub
 
-###5_view_samtools.qsub
+###6_view_samtools.qsub
 Converts a sam file to bam and removes low quality mappings
 
 Calls:
 
-- 6_htseq.qsub
+- 7_htseq.qsub
 
-###6_htseq.qsub
+###7_htseq.qsub
 Counts reads from a single individual to a give genome
 
 Calls: nothing
