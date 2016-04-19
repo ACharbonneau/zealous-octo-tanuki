@@ -12,22 +12,7 @@ output:
 
 #Global parameters for modeling
 
-```{r Global}
-
-
-#Setting a reasonable p-value threshold to be used throughout
-p.threshold <- 0.05
-
-countsDir <- file.path("../Moghe2014")
-outputfilenamePlain <- ("../DEseqOutput/Moghe2014_deseq2_expr_changes_HvL.csv")
-outputfilenameInteraction <- ("../DEseqOutput/Moghe2014_deseq2_expr_changes_Int_HvL.csv")
-
-#For other genomes, also have to change gene number indexing on line 251 or the lda won't run
-
-#Reference level is Low
-```
-
-```{r GlobalKitashiba, echo=FALSE, eval=FALSE}
+```{r GlobalKitashiba}
 
 
 #Setting a reasonable p-value threshold to be used throughout
@@ -38,6 +23,47 @@ outputfilenamePlain <- ("../DEseqOutput/Kitashiba2014_deseq2_expr_changes_HvL.cs
 outputfilenameInteraction <- ("../DEseqOutput/Kitashiba2014_deseq2_expr_changes_Int_HvL.csv")
 
 #For other genomes, also have to change gene number indexing on line 251 or the lda won't run
+
+#Reference level is Low
+```
+
+```{r GlobalMitsui2015, echo=FALSE, eval=FALSE}
+
+
+#Setting a reasonable p-value threshold to be used throughout
+p.threshold <- 0.05
+
+countsDir <- file.path("../Mitsui2015")
+outputfilenamePlain <- ("../DEseqOutput/Mitsui2015_deseq2_expr_changes_HvL.csv")
+outputfilenameInteraction <- ("../DEseqOutput/Mitsui2015_deseq2_expr_changes_Int_HvL.csv")
+
+#Reference level is Low
+```
+
+```{r GlobalJeong2016, echo=FALSE, eval=FALSE}
+
+
+#Setting a reasonable p-value threshold to be used throughout
+p.threshold <- 0.05
+
+countsDir <- file.path("../Jeong2016")
+outputfilenamePlain <- ("../DEseqOutput/Jeong2016_deseq2_expr_changes_HvL.csv")
+outputfilenameInteraction <- ("../DEseqOutput/Jeong2016_deseq2_expr_changes_Int_HvL.csv")
+
+
+#Reference level is Low
+```
+
+```{r GlobalMoghe2014, echo=FALSE, eval=FALSE}
+
+
+#Setting a reasonable p-value threshold to be used throughout
+p.threshold <- 0.05
+
+countsDir <- file.path("../Moghe2014")
+outputfilenamePlain <- ("../DEseqOutput/Moghe2014_deseq2_expr_changes_HvL.csv")
+outputfilenameInteraction <- ("../DEseqOutput/Moghe2014_deseq2_expr_changes_Int_HvL.csv")
+
 
 #Reference level is Low
 ```
@@ -76,6 +102,7 @@ row.names(meta) <- meta[,1]
 
 File_Num <- length(ALLTHEFILES) 
 
+
 # Make first dataset into starting dataframe
 ALLTHEGENES <- read.csv(paste(countsDir, "/", ALLTHEFILES[ 1 ], sep=""), sep = "\t", header = F, 
                         col.names = c("Genes", regmatches(ALLTHEFILES[ 1 ], regexec("[1-6]_2008[0-9]+_[0-9]_[A-Z]+[0-9]", ALLTHEFILES[ 1 ]))))
@@ -96,8 +123,11 @@ for( X in c( 2:File_Num )){ #start at 2 because first dataset already in
   ALLTHEGENES <- inner_join( ALLTHEGENES, Temp_File )
   
 }
-#ALLTHEGENES <- filter(ALLTHEGENES, grepl("gene", Genes))
-ALLTHEGENES <- filter(ALLTHEGENES, grepl("mRNA", Genes))
+
+Gene_Num <- length( rownames( ALLTHEGENES )) -5
+
+ALLTHEGENES <- ALLTHEGENES[ 1:Gene_Num,  ]
+
 row.names(ALLTHEGENES) <- ALLTHEGENES[,1]
 
 
