@@ -21,7 +21,7 @@ p.threshold <- 0.05
 countsDir <- file.path("../Kitashiba2014")
 outputfilenamePlain <- ("../DEseqOutput/Kitashiba2014_deseq2_expr_changes_HvL.csv")
 outputfilenameInteraction <- ("../DEseqOutput/Kitashiba2014_deseq2_expr_changes_Int_HvL.csv")
-
+outputfilenameCounts <- ("../DEseqOutput/Kitashiba2014_counts.csv")
 #For other genomes, also have to change gene number indexing on line 251 or the lda won't run
 
 #Reference level is Low
@@ -36,7 +36,7 @@ p.threshold <- 0.05
 countsDir <- file.path("../Mitsui2015")
 outputfilenamePlain <- ("../DEseqOutput/Mitsui2015_deseq2_expr_changes_HvL.csv")
 outputfilenameInteraction <- ("../DEseqOutput/Mitsui2015_deseq2_expr_changes_Int_HvL.csv")
-
+outputfilenameCounts <- ("../DEseqOutput/Mitsui2015_counts.csv")
 #Reference level is Low
 ```
 
@@ -49,7 +49,7 @@ p.threshold <- 0.05
 countsDir <- file.path("../Jeong2016")
 outputfilenamePlain <- ("../DEseqOutput/Jeong2016_deseq2_expr_changes_HvL.csv")
 outputfilenameInteraction <- ("../DEseqOutput/Jeong2016_deseq2_expr_changes_Int_HvL.csv")
-
+outputfilenameCounts <- ("../DEseqOutput/Jeong2016_counts.csv")
 
 #Reference level is Low
 ```
@@ -63,6 +63,7 @@ p.threshold <- 0.05
 countsDir <- file.path("../Moghe2014")
 outputfilenamePlain <- ("../DEseqOutput/Moghe2014_deseq2_expr_changes_HvL.csv")
 outputfilenameInteraction <- ("../DEseqOutput/Moghe2014_deseq2_expr_changes_Int_HvL.csv")
+outputfilenameCounts <- ("../DEseqOutput/Moghe2014_counts.csv")
 
 
 #Reference level is Low
@@ -130,8 +131,8 @@ ALLTHEGENES <- ALLTHEGENES[ 1:Gene_Num,  ]
 
 row.names(ALLTHEGENES) <- ALLTHEGENES[,1]
 
-
-
+count <- colSums(ALLTHEGENES[2:36])
+write.csv(count, outputfilenameCounts)
 ```
 
 
