@@ -28,9 +28,6 @@ cd ${PBS_O_WORKDIR}/${bsname}
 
 module load bowtie2/2.2.6
 
-module load TopHat/2.1.0
-
-module load SAMTools/1.2
 
 #Then launch metadata collector
 qsub ../scripts/echo.qsub -N ${PBS_JOBNAME}.metadata -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}"
@@ -38,10 +35,21 @@ qsub ../scripts/echo.qsub -N ${PBS_JOBNAME}.metadata -v genome="${genome}",index
 #Run bowtie2
 
 # Using default mode: search for multiple alignments, report the best one
-echo bsname="${PBS_JOBNAME}"
-bowtie2 --local -D 15 -R 2 -N 0 -L 20 -i S,1,0.75 -x ${index} -U ../${indiv} -S ${PBS_JOBNAME}.sam
+#--sensitive-local      -D 15 -R 2 -N 0 -L 20 -i S,1,0.75 (default)
+#  -D <int>           give up extending after <int> failed extends in a row (15)
+# -R <int>           for reads w/ repetitive seeds, try <int> sets of seeds (2)
+# -N <int>           max # mismatches in seed alignment; can be 0 or 1 (0)
+# -L <int>           length of seed substrings; must be >3, <32 (22)
+#-i <func>          interval between seed substrings w/r/t read len (S,1,1.15)
 
-tophat -p 4 -G ${gff} -o ${PBS_JOBNAME}_TH.sam ${index} ../${indiv}
+echo bsname="${PBS_JOBNAME}"
+bowtie2 --local -D 15 -R 2 -N 0 -L 20 -i S,1,0.75 -x ${index} -U ../${indiv} -S ${PBS_JOBNAME}Local.sam
+
+#--sensitive            -D 15 -R 2 -N 0 -L 22 -i S,1,1.15 (default)
+
+bowtie2  -D 15 -R 2 -N 0 -L 22 -i S,1,1.15 -x ${index} -U ../${indiv} -S ${PBS_JOBNAME}Global.sam
+
+
 
 #Launch samtools
 #cd ${bsname}
