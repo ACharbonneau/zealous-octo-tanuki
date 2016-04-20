@@ -1,6 +1,6 @@
 #!/bin/sh -login
 #PBS -j oe
-#PBS -l nodes=1:ppn=1,walltime=4:00:00,mem=10gb
+#PBS -l nodes=1:ppn=5,walltime=4:00:00,mem=10gb
 #PBS -m a
 #PBS -r n
 #PBS -t 0-34
@@ -28,6 +28,9 @@ cd ${PBS_O_WORKDIR}/${bsname}
 
 module load bowtie2/2.2.6
 
+module load TopHat/2.1.0
+
+module load SAMTools/1.2
 
 #Then launch metadata collector
 qsub ../scripts/echo.qsub -N ${PBS_JOBNAME}.metadata -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}"
@@ -38,6 +41,7 @@ qsub ../scripts/echo.qsub -N ${PBS_JOBNAME}.metadata -v genome="${genome}",index
 echo bsname="${PBS_JOBNAME}"
 bowtie2 --local -D 15 -R 2 -N 0 -L 20 -i S,1,0.75 -x ${index} -U ../${indiv} -S ${PBS_JOBNAME}.sam
 
+tophat -p 4 -G ${gff} -o ${PBS_JOBNAME}_TH.sam ${index} ../${indiv}
 
 #Launch samtools
 #cd ${bsname}
