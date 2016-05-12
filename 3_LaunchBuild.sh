@@ -33,3 +33,9 @@ qsub scripts/4_bt2_build.qsub -N Mitsui2015 -v genome=/mnt/research/radishGenomi
 #Online, 26(5), 1925–1937. http://doi.org/10.1105/tpc.114.124297
 
 qsub scripts/4_bt2_build.qsub -N Moghe2014 -v genome=/mnt/research/radishGenomics/AnalysisOfSequencingFiles/MoghePublished/RrContigs.fa.fasta,gff=/mnt/research/radishGenomics/AnalysisOfSequencingFiles/MoghePublished/Rr_gene_pseu.gff.mod,gffi="Parent",exon="exon",stranded="no"
+
+#Brassica oleracea UNIGENES, unique. ftp://ftp.ncbi.nih.gov/repository/UniGene/
+#Tack thinks this is the best thing to map to
+
+
+qsub scripts/4_bt2_build.qsub -N BO_UNI -v genome=/mnt/research/radishGenomics/PublicData/brassica_oleracea/Bol.seq.uniq,gff=NA,gffi="NA",exon="NA",stranded="NA"
