@@ -37,5 +37,6 @@ qsub scripts/4_bt2_build.qsub -N Moghe2014 -v genome=/mnt/research/radishGenomic
 #Brassica oleracea UNIGENES, unique. ftp://ftp.ncbi.nih.gov/repository/UniGene/
 #Tack thinks this is the best thing to map to
 
+awk '/^>/ {printf("\n%s\n",$0);next; } { printf("%s",$0);}  END {printf("\n");}' < /mnt/research/radishGenomics/PublicData/brassica_oleracea/Bol.seq.uniq > /mnt/research/radishGenomics/PublicData/brassica_oleracea/Edit_Bol.seq.uniq
 
-qsub scripts/4_bt2_build.qsub -N BO_UNI -v genome=/mnt/research/radishGenomics/PublicData/brassica_oleracea/Bol.seq.uniq,gff=NA,gffi="NA",exon="NA",stranded="NA"
+qsub scripts/4_bt2_build.qsub -N BO_UNI -v genome=/mnt/research/radishGenomics/PublicData/brassica_oleracea/Edit_Bol.seq.uniq,gff=NA,gffi="NA",exon="NA",stranded="NA"
