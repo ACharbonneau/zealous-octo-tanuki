@@ -47,7 +47,7 @@ bowtie2 --local -D 15 -R 2 -N 0 -L 20 -i S,1,0.75 -x ${index} -U ../${indiv} -S 
 
 #--sensitive            -D 15 -R 2 -N 0 -L 22 -i S,1,1.15 (default)
 
-bowtie2  -D 15 -R 2 -N 0 -L 22 -i S,1,1.15 -x ${index} -U ../${indiv} -S ${PBS_JOBNAME}_0_Global.sam
+#bowtie2  -D 15 -R 2 -N 0 -L 22 -i S,1,1.15 -x ${index} -U ../${indiv} -S ${PBS_JOBNAME}_0_Global.sam
 
 
 
