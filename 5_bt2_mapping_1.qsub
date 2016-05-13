@@ -1,6 +1,6 @@
 #!/bin/sh -login
 #PBS -j oe
-#PBS -l nodes=1:ppn=5,walltime=4:00:00,mem=10gb
+#PBS -l nodes=1:ppn=2,walltime=4:00:00,mem=10gb
 #PBS -m a
 #PBS -r n
 #PBS -t 0-34
@@ -40,7 +40,7 @@ module load bowtie2/2.2.6
 #-i <func>          interval between seed substrings w/r/t read len (S,1,1.15)
 
 echo bsname="${PBS_JOBNAME}"
-bowtie2 --local -D 15 -R 2 -N 1 -L 20 -i S,1,0.75 -x ${index} -U ../${indiv} -S ${PBS_JOBNAME}_1_Local.sam
+bowtie2 --local -p 2 -D 15 -R 2 -N 1 -L 20 -i S,1,0.75 -x ${index} -U ../${indiv} -S ${PBS_JOBNAME}_1_Local.sam
 
 #--sensitive            -D 15 -R 2 -N 0 -L 22 -i S,1,1.15 (default)
 
