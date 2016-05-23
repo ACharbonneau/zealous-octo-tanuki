@@ -12,8 +12,8 @@ output:
 
 #Global parameters for modeling
 
-```{r GlobalKitashiba}
-
+```{r GlobalKitashiba, echo=FALSE, eval=FALSE}
+rm(list = ls())
 
 #Setting a reasonable p-value threshold to be used throughout
 p.threshold <- 0.05
@@ -26,6 +26,22 @@ outputfilenameCounts <- ("../DEseqOutput/Kitashiba2014_counts.csv")
 
 #Reference level is Low
 ```
+
+```{r GlobalKitashiba1}
+
+#Setting a reasonable p-value threshold to be used throughout
+p.threshold <- 0.05
+
+countsDir <- file.path("../Kitashiba2014_1")
+outputfilenamePlain <- ("../DEseqOutput/Kitashiba2014_deseq2_expr_changes_HvL_1.csv")
+outputfilenameInteraction <- ("../DEseqOutput/Kitashiba2014_deseq2_expr_changes_Int_HvL_1.csv")
+outputfilenameCounts <- ("../DEseqOutput/Kitashiba2014_counts_1.csv")
+#For other genomes, also have to change gene number indexing on line 251 or the lda won't run
+
+#Reference level is Low
+
+```
+
 
 ```{r GlobalMitsui2015, echo=FALSE, eval=FALSE}
 
@@ -40,6 +56,20 @@ outputfilenameCounts <- ("../DEseqOutput/Mitsui2015_counts.csv")
 #Reference level is Low
 ```
 
+```{r GlobalMitsui2015_1, echo=FALSE, eval=FALSE}
+
+
+#Setting a reasonable p-value threshold to be used throughout
+p.threshold <- 0.05
+
+countsDir <- file.path("../Mitsui2015_1")
+outputfilenamePlain <- ("../DEseqOutput/Mitsui2015_deseq2_expr_changes_HvL_1.csv")
+outputfilenameInteraction <- ("../DEseqOutput/Mitsui2015_deseq2_expr_changes_Int_HvL_1.csv")
+outputfilenameCounts <- ("../DEseqOutput/Mitsui2015_counts_1.csv")
+#Reference level is Low
+```
+
+
 ```{r GlobalJeong2016, echo=FALSE, eval=FALSE}
 
 
@@ -53,6 +83,21 @@ outputfilenameCounts <- ("../DEseqOutput/Jeong2016_counts.csv")
 
 #Reference level is Low
 ```
+
+```{r GlobalJeong2016_1, echo=FALSE, eval=FALSE}
+
+
+#Setting a reasonable p-value threshold to be used throughout
+p.threshold <- 0.05
+
+countsDir <- file.path("../Jeong2016_1")
+outputfilenamePlain <- ("../DEseqOutput/Jeong2016_deseq2_expr_changes_HvL_1.csv")
+outputfilenameInteraction <- ("../DEseqOutput/Jeong2016_deseq2_expr_changes_Int_HvL_1.csv")
+outputfilenameCounts <- ("../DEseqOutput/Jeong2016_counts_1.csv")
+
+#Reference level is Low
+```
+
 
 ```{r GlobalMoghe2014, echo=FALSE, eval=FALSE}
 
@@ -70,15 +115,32 @@ outputfilenameCounts <- ("../DEseqOutput/Moghe2014_counts.csv")
 ```
 
 
+
+```{r GlobalMoghe2014_1, echo=FALSE, eval=FALSE}
+
+
+#Setting a reasonable p-value threshold to be used throughout
+p.threshold <- 0.05
+
+countsDir <- file.path("../Moghe2014_1")
+outputfilenamePlain <- ("../DEseqOutput/Moghe2014_deseq2_expr_changes_HvL_1.csv")
+outputfilenameInteraction <- ("../DEseqOutput/Moghe2014_deseq2_expr_changes_Int_HvL.csv_1")
+outputfilenameCounts <- ("../DEseqOutput/Moghe2014_counts.csv_1")
+
+
+#Reference level is Low
+```
+
 ```{r LoadPackages, echo=FALSE, results='hide', include=FALSE}
+
 require(MASS)
 require(ggplot2)
-require(dplyr)
 require(DESeq2)
 require(gtools)
 require(pheatmap)
 require(cowplot)
 require(RColorBrewer)
+require(dplyr)
 
 
 ```
@@ -131,7 +193,7 @@ ALLTHEGENES <- ALLTHEGENES[ 1:Gene_Num,  ]
 
 row.names(ALLTHEGENES) <- ALLTHEGENES[,1]
 
-count <- colSums(ALLTHEGENES[2:36])
+count <- colSums(ALLTHEGENES[2:File_Num+1])
 write.csv(count, outputfilenameCounts)
 ```
 
@@ -140,7 +202,7 @@ write.csv(count, outputfilenameCounts)
 
 # DESeq2 uses the `expressionset` data format, so the data needs to be reformatted to fit:
 
-raph.exprs <-  select(ALLTHEGENES, contains("_"))
+raph.exprs <-  select(ALLTHEGENES, contains("2008"))
 
 raph.groups <- select(meta, FlowCell, Date, SampleInFC, ExID, Location, Line, SampleInLine)
 
