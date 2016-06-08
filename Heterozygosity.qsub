@@ -17,5 +17,4 @@ module load vcftools/0.1.9
 
 cd ${PBS_O_WORKDIR} || exit
 
-samtools mpileup -u -t DP -f /mnt/research/radishGenomics/PublicData/RsativusGenome/Edit_RSA_r1.0 ../Kitashiba2014_0.map-*fastq.edit_0.sorted.bam -o Kitashiba2014_0.vcf
-vcftools --vcf Kitashiba2014_0.vcf --freq --counts --derived --site-pi --het --hardy --out Kitashiba2014_0_freq
+samtools mpileup -u -t DP -f /mnt/research/radishGenomics/PublicData/RsativusGenome/Edit_RSA_r1.0 ../Kitashiba2014_0.map-*fastq.edit_0.sorted.bam | vcftools --vcf - --freq --counts --derived --site-pi --het --hardy --out Kitashiba2014_0_freq
