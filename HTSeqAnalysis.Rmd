@@ -18,16 +18,17 @@ rm(list = ls())
 #Setting a reasonable p-value threshold to be used throughout
 p.threshold <- 0.05
 
-countsDir <- file.path("../Kitashiba2014")
+countsDir <- file.path("../Kitashiba2014_0")
 outputfilenamePlain <- ("../DEseqOutput/Kitashiba2014_deseq2_expr_changes_HvL.csv")
 outputfilenameInteraction <- ("../DEseqOutput/Kitashiba2014_deseq2_expr_changes_Int_HvL.csv")
 outputfilenameCounts <- ("../DEseqOutput/Kitashiba2014_counts.csv")
+
 #For other genomes, also have to change gene number indexing on line 251 or the lda won't run
 
 #Reference level is Low
 ```
 
-```{r GlobalKitashiba1}
+```{r GlobalKitashiba1, echo=FALSE, eval=FALSE}
 
 #Setting a reasonable p-value threshold to be used throughout
 p.threshold <- 0.05
@@ -43,13 +44,13 @@ outputfilenameCounts <- ("../DEseqOutput/Kitashiba2014_counts_1.csv")
 ```
 
 
-```{r GlobalMitsui2015, echo=FALSE, eval=FALSE}
+```{r GlobalMitsui2015}
 
 
 #Setting a reasonable p-value threshold to be used throughout
 p.threshold <- 0.05
 
-countsDir <- file.path("../Mitsui2015")
+countsDir <- file.path("../Mitsui2015_0")
 outputfilenamePlain <- ("../DEseqOutput/Mitsui2015_deseq2_expr_changes_HvL.csv")
 outputfilenameInteraction <- ("../DEseqOutput/Mitsui2015_deseq2_expr_changes_Int_HvL.csv")
 outputfilenameCounts <- ("../DEseqOutput/Mitsui2015_counts.csv")
@@ -76,7 +77,7 @@ outputfilenameCounts <- ("../DEseqOutput/Mitsui2015_counts_1.csv")
 #Setting a reasonable p-value threshold to be used throughout
 p.threshold <- 0.05
 
-countsDir <- file.path("../Jeong2016")
+countsDir <- file.path("../Jeong2016_0")
 outputfilenamePlain <- ("../DEseqOutput/Jeong2016_deseq2_expr_changes_HvL.csv")
 outputfilenameInteraction <- ("../DEseqOutput/Jeong2016_deseq2_expr_changes_Int_HvL.csv")
 outputfilenameCounts <- ("../DEseqOutput/Jeong2016_counts.csv")
@@ -105,7 +106,7 @@ outputfilenameCounts <- ("../DEseqOutput/Jeong2016_counts_1.csv")
 #Setting a reasonable p-value threshold to be used throughout
 p.threshold <- 0.05
 
-countsDir <- file.path("../Moghe2014")
+countsDir <- file.path("../Moghe2014_0")
 outputfilenamePlain <- ("../DEseqOutput/Moghe2014_deseq2_expr_changes_HvL.csv")
 outputfilenameInteraction <- ("../DEseqOutput/Moghe2014_deseq2_expr_changes_Int_HvL.csv")
 outputfilenameCounts <- ("../DEseqOutput/Moghe2014_counts.csv")
@@ -125,7 +126,7 @@ p.threshold <- 0.05
 countsDir <- file.path("../Moghe2014_1")
 outputfilenamePlain <- ("../DEseqOutput/Moghe2014_deseq2_expr_changes_HvL_1.csv")
 outputfilenameInteraction <- ("../DEseqOutput/Moghe2014_deseq2_expr_changes_Int_HvL.csv_1")
-outputfilenameCounts <- ("../DEseqOutput/Moghe2014_counts.csv_1")
+outputfilenameCounts <- ("../DEseqOutput/Moghe2014_counts_1.csv")
 
 
 #Reference level is Low
@@ -187,14 +188,20 @@ for( X in c( 2:File_Num )){ #start at 2 because first dataset already in
   
 }
 
+no_feature <- as.data.frame(ALLTHEGENES[ length( rownames( ALLTHEGENES )) - 4,])
+
 Gene_Num <- length( rownames( ALLTHEGENES )) -5
 
 ALLTHEGENES <- ALLTHEGENES[ 1:Gene_Num,  ]
 
 row.names(ALLTHEGENES) <- ALLTHEGENES[,1]
 
-count <- colSums(ALLTHEGENES[2:File_Num+1])
-write.csv(count, outputfilenameCounts)
+count <- as.data.frame(colSums(ALLTHEGENES[2:(File_Num+1)]))
+
+counts <- cbind(count, t(no_feature)[2:36])
+
+write.csv(counts, outputfilenameCounts)
+
 ```
 
 
@@ -358,20 +365,22 @@ pheatmap(sampleDistMatrix,
 First two components of a PCA of the same normalized distance matrix used in the previous heatmap. These two vectors capture nearly 40% of the variance, but this seems to be mostly capturing Reed/KBS. 
 
 ```{r plainPCA, echo=FALSE, fig.path="../figures/", fig.keep="last", fig.width=11}
-vsd_df <- as.data.frame(t(assay(vsd)[select,]))
-df$name <- rownames(df)
+vsd_df <- as.data.frame(assay(vsd)[select,])
+
 
 cowplot::plot_grid( plotPCA(vsd, intgroup="Location"),
-                   plotPCA(vsd, intgroup="Line"),
-                   plotPCA(vsd, intgroup=c( "Location", "Line")),
+                    plotPCA(vsd, intgroup="Line"),
+                    plotPCA(vsd, intgroup=c( "Location", "Line")),
                            align="c", ncol=2)
                    
-#pca_vsd <- prcomp( vsd_df )  #index here to remove 'not_featured'
-#pca_vsd_lab <- as.data.frame( pca_vsd$x ) %>% 
-#                  mutate(name=rownames(pca_vsd$x)) %>%
-#                  inner_join( df )
+pca_vsd <- prcomp( vsd_df )  #index here to remove 'not_featured'
+plot(pca_vsd$x[,1], pca_vsd$x[,2])
 
-#plot(pca_vsd_lab$PC1, pca_vsd_lab$PC2)
+pca_vsd_lab <- as.data.frame( t(pca_vsd$x )) %>% 
+                  mutate(name=rownames(t(pca_vsd$x))) %>%
+                  inner_join( df )
+
+plot(pca_vsd$PC1, pca_vsd$PC2)
 
 
 ```
@@ -382,11 +391,14 @@ cowplot::plot_grid( plotPCA(vsd, intgroup="Location"),
 
 Comparison of the first three dfs of the same same normalized distance matrix. This model found some variables that are collinear, which suggests that some gene expression profiles are predictive of other genes.
 
-vsd_df$name <- rownames(vsd_df)
+vsd_lda <- as.data.frame(t(as.data.frame(vsd_df)))
 
-vsd_lda <- inner_join(vsd_df, df)
+vsd_lda$name <- rownames(vsd_lda)
+
+vsd_lda <- inner_join(vsd_lda, df)
 # lda( as.matrix(vsd_lda[, 1:80523 ]) ~ Line + Location, data=vsd_lda )
-vsd_lda_m <- lda( Line:Location ~ as.matrix(vsd_lda[, 1:32791 ]), data=vsd_lda )
+
+vsd_lda_m <- lda( Line:Location ~ as.matrix(vsd_lda[, 1:27217 ]), data=vsd_lda )
 
 str(vsd_lda_m)
 
@@ -497,6 +509,11 @@ results_hvl_df$ABlog2FoldChange <- abs(results_hvl_df$log2FoldChange)
 
 write.csv( results_hvl_df, outputfilenamePlain, quote=FALSE, row.names=FALSE)
 
+ggplot(results_hvl_df, aes(ABlog2FoldChange, padj)) + geom_point(aes(col=log(baseMean)))
+
+ggplot(results_hvl_df, aes(log2FoldChange, padj)) + geom_point(aes(col=log(baseMean)))
+
+ggplot(results_hvl_df, aes(log2FoldChange, log10(baseMean))) + geom_point(aes(col=padj))
 
 
 ```
