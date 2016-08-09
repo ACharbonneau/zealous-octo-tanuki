@@ -1,6 +1,0 @@
-RNAData_dir=/Volumes/radishGenomics/AssembledSequencingFiles/AE_RNA_Assembly
-RapGenomeData_dir=/Volumes/radishGenomics/AssembledSequencingFiles/MoghePublished
-SatGenomeData_dir=/Volumes/radishGenomics/PublicData/RsativusGenome
-2015SatGenomeData_dir=/Volumes/radishGenomics/PublicData/2015_RsativusGenome
-GSNAP_dir=/usr/local/share
-kmer=15
