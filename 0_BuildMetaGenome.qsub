@@ -27,6 +27,6 @@ module load MUMmer/3.23
 module load Biopython/1.65
 
 
-java -jar medusa.jar -i Mitsui2015 -o SativusMetaGenome.fa -v
+java -jar medusa.jar -i Mitsui2015 -o ${PBS_JOBNAME}.fa -v
 
 
