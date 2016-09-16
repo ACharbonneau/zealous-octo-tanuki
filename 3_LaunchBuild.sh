@@ -15,9 +15,9 @@ qsub scripts/4_bt2_build.qsub -N Jeong2016 -v genome=/mnt/research/radishGenomic
 #Okamoto S, Sakamoto K, Shirasawa K, Tabata S, Nishio T (2014)
 
 #Get FASTA into right format
-awk '/^>/ {printf("\n%s\n",$0);next; } { printf("%s",$0);}  END {printf("\n");}' < /mnt/research/radishGenomics/PublicData/RsativusGenome/RSA_r1.0 > /mnt/research/radishGenomics/PublicData/RsativusGenome/Edit_RSA_r1.0
+awk '/^>/ {printf("\n%s\n",$0);next; } { printf("%s",$0);}  END {printf("\n");}' < /mnt/research/radishGenomics/PublicData/RsativusGenome/RSA_r1.0 > /mnt/research/radishGenomics/PublicData/RsativusGenome/Edit_RSA_r1.0.fasta
 
-qsub scripts/4_bt2_build.qsub -N Kitashiba2014 -v genome=/mnt/research/radishGenomics/PublicData/RsativusGenome/Edit_RSA_r1.0,gff=/mnt/research/radishGenomics/PublicData/RsativusGenome/RSA_r1.0_genes.gff3.gz,gffi="Parent",exon="exon",stranded="no"
+qsub scripts/4_bt2_build.qsub -N Kitashiba2014 -v genome=/mnt/research/radishGenomics/PublicData/RsativusGenome/Edit_RSA_r1.0.fasta,gff=/mnt/research/radishGenomics/PublicData/RsativusGenome/RSA_r1.0_genes.gff3.gz,gffi="Parent",exon="exon",stranded="no"
 
 #Sativus Genome: Mitsui, Y., Shimomura, M., Komatsu, K., Namiki, N.,
 #Shibata-Hatta, M., Imai, M., et al. (2015). The radish genome and comprehensive
