@@ -34,5 +34,3 @@ bowtie2-build ${genome} BowtieIndicies/${PBS_JOBNAME} #build index
 #Launch mapper
 qsub scripts/5_bt2_mapping_0.qsub -N ${PBS_JOBNAME}_0.map -o ${PBS_JOBNAME}/ -v genome="${genome}",index="../BowtieIndicies/${PBS_JOBNAME}",gff="${gff}",bsname="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
 qsub scripts/5_bt2_mapping_1.qsub -N ${PBS_JOBNAME}_1.map -o ${PBS_JOBNAME}/ -v genome="${genome}",index="../BowtieIndicies/${PBS_JOBNAME}",gff="${gff}",bsname="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
-qsub scripts/5_bt2_mapping_2.qsub -N ${PBS_JOBNAME}_2.map -o ${PBS_JOBNAME}/ -v genome="${genome}",index="../BowtieIndicies/${PBS_JOBNAME}",gff="${gff}",bsname="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
-qsub scripts/5_bt2_mapping_3.qsub -N ${PBS_JOBNAME}_3.map -o ${PBS_JOBNAME}/ -v genome="${genome}",index="../BowtieIndicies/${PBS_JOBNAME}",gff="${gff}",bsname="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"

@@ -23,10 +23,6 @@ source ~/.bash_profile
 
 cd ${PBS_O_WORKDIR} || exit
 
-
-mkdir ${PBS_JOBNAME}
-cd ${PBS_JOBNAME} #make a folder for each genome you're mapping to
-
 BUSCO_v1.22.py -o ${PBS_JOBNAME} -in ${genome} -l plantae/ -m genome
 
 
