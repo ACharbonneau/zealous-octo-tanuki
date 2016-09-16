@@ -19,6 +19,7 @@ then
         exit 1
 fi
 
+source ~/.bash_profile
 
 cd ${PBS_O_WORKDIR} || exit
 
