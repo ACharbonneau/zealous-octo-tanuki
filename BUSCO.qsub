@@ -23,7 +23,7 @@ source ~/.bash_profile
 
 cd ${PBS_O_WORKDIR} || exit
 
-module load BLAST/2.2.26
+module load BLAST+
 
 BUSCO_v1.22.py -o ${PBS_JOBNAME} -in ${genome} -l plantae/ -m genome
 
