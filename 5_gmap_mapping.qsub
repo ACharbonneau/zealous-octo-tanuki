@@ -32,10 +32,10 @@ module load bowtie2/2.2.6
 
 echo bsname="${PBS_JOBNAME}"
 
-gsnap -d ${PBS_JOBNAME} --force-single-end ../${indiv}t -k 15 -A sam -N 1 -O -n 1 -Q --nofails -o ${PBS_JOBNAME}_1.sam
+gsnap -d ${PBS_JOBNAME} --force-single-end ../${indiv}t -k 15 -A sam -N 1 -O -n 1 -Q --nofails -o ${PBS_JOBNAME}.sam
 
 
 
 #Launch samtools
 
-qsub ../scripts/6_view_samtools.qsub -N ${bsname}_1.samtools -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}",job="${PBS_JOBNAME}_1",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
+qsub ../scripts/6_view_samtools.qsub -N ${bsname}.samtools -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}",job="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
