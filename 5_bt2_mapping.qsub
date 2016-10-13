@@ -30,8 +30,11 @@ module load bowtie2/2.2.6
 
 
 #Then launch metadata collector
-qsub ../scripts/echo.qsub -N ${PBS_JOBNAME}.metadata -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}"
+rc=$?
 
+if [[ $rc = 0 ]] 
+then qsub ../scripts/echo.qsub -N ${PBS_JOBNAME}.metadata -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}"
+fi 
 #Run bowtie2
 
 # Using default mode: search for multiple alignments, report the best one
@@ -53,4 +56,8 @@ bowtie2 --local -p 2 -D 15 -R 2 -N 0 -L 20 -i S,1,0.75 -x ${index} -U ../${indiv
 #Launch samtools
 #cd ${bsname}
 
-qsub ../scripts/6_view_samtools.qsub -N ${bsname}.samtools -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}",job="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
+rc=$?
+
+if [[ $rc = 0 ]] 
+then qsub ../scripts/6_view_samtools.qsub -N ${bsname}.samtools -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}",job="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
+fi

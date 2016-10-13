@@ -31,6 +31,10 @@ source ~/.bash_profile
 
 gmap_build -d ${PBS_JOBNAME} -k 15 ${genome}
 
-
 #Launch mapper
-qsub scripts/5_gmap_mapping.qsub -N ${PBS_JOBNAME}.map -o ${PBS_JOBNAME}/ -v genome="${genome}",index="${PBS_JOBNAME}",gff="${gff}",bsname="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
+rc=$?
+
+if [[ $rc = 0 ]] 
+then qsub scripts/5_gmap_mapping.qsub -N ${PBS_JOBNAME}.map -o ${PBS_JOBNAME}/ -v genome="${genome}",index="${PBS_JOBNAME}",gff="${gff}",bsname="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
+
+fi

@@ -38,4 +38,8 @@ gsnap -d ${PBS_JOBNAME} --force-single-end ../${indiv}t -k 15 -A sam -N 1 -O -n 
 
 #Launch samtools
 
-qsub ../scripts/6_view_samtools.qsub -N ${bsname}.samtools -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}",job="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
+rc=$?
+
+if [[ $rc = 0 ]] 
+then qsub ../scripts/6_view_samtools.qsub -N ${bsname}.samtools -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}",job="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
+fi
