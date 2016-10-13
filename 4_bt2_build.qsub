@@ -32,4 +32,4 @@ module load bowtie2/2.2.6
 bowtie2-build ${genome} BowtieIndicies/${PBS_JOBNAME} #build index
 
 #Launch mapper
-qsub scripts/5_bt2_mapping.qsub -N ${PBS_JOBNAME}_0.map -o ${PBS_JOBNAME}/ -v genome="${genome}",index="../BowtieIndicies/${PBS_JOBNAME}",gff="${gff}",bsname="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
+qsub scripts/5_bt2_mapping.qsub -N ${PBS_JOBNAME}.map -o ${PBS_JOBNAME}/ -v genome="${genome}",index="../BowtieIndicies/${PBS_JOBNAME}",gff="${gff}",bsname="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
