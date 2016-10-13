@@ -29,7 +29,7 @@ mkdir ${PBS_JOBNAME} #make a folder for each genome you're mapping to
 
 source ~/.bash_profile
 
-gmap_build -d ${PBS_JOBNAME} -k 15 ${genome}
+#gmap_build -d ${PBS_JOBNAME} -k 15 ${genome}
 
 #Launch mapper
 rc=$?
