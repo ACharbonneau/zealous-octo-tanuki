@@ -26,7 +26,7 @@ cd ${PBS_O_WORKDIR} || exit
 module load GNU/4.8.3
 module load BLAST+/2.3.0
 
-BUSCO_v1.22.py -o ${PBS_JOBNAME} -in ${genome} -l plantae/ -m genome
+BUSCO_v1.22.py -o ${PBS_JOBNAME} -in ${genome} -l eukaryota/ -m genome
 
 
 
