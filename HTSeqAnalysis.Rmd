@@ -217,7 +217,9 @@ raph.groups$FlowCell <- factor(raph.groups$FlowCell)
 
 raph.groups$Line <- relevel(raph.groups$Line, ref="Low")
 
-raph.meta <- data.frame( description=c( "Sequencing Flowcell", "Sequencing Date", "Sample number in flowcell", "Sample Name", "Growth location of selection line", "High or Low selection", "Sample number in selection line") )
+raph.groups$LocationLine <- factor(paste(raph.groups$Location, raph.groups$Line, sep=""))
+
+raph.meta <- data.frame( description=c( "Sequencing Flowcell", "Sequencing Date", "Sample number in flowcell", "Sample Name", "Growth location of selection line", "High or Low selection", "Sample number in selection line", "PsuedoInteraction") )
 
 raph.est <- ExpressionSet( assayData=as.matrix(raph.exprs),
                            phenoData=new( "AnnotatedDataFrame",
@@ -231,20 +233,24 @@ raph.DES <- DESeqDataSetFromMatrix(countData = exprs( raph.est ), colData = pDat
 
 raph.DES <- DESeq( raph.DES )
 
-#Remove low count genes
-raph.DES <- estimateSizeFactors(raph.DES)
-nc <- counts(raph.DES, normalized=TRUE)
-filter <- rowSums(nc >= 10) >= 2
-raph.DES <- raph.DES[filter,]
+##Remove low count genes
+#raph.DES <- estimateSizeFactors(raph.DES)
+#nc <- counts(raph.DES, normalized=TRUE)
+#filter <- rowSums(nc >= 10) >= 2
+#raph.DES <- raph.DES[filter,]
+
+## One with pseudointeractions
+
+raphpsedo.DES <- DESeqDataSetFromMatrix(countData = exprs( raph.est ), colData = pData( raph.est ), design = ~ LocationLine + FlowCell )
 
 ## One with interactions
-raphInt.DES <- DESeqDataSetFromMatrix(countData = exprs( raph.est ), colData = pData( raph.est ), design = ~ FlowCell + Location + Line + Location:Line )
+raphInt.DES <- DESeqDataSetFromMatrix(countData = exprs( raph.est ), colData = pData( raph.est ), design = ~ FlowCell + Line + Location:Line )
 
-#Remove low count genes
-raphInt.DES <- estimateSizeFactors(raphInt.DES)
-nc <- counts(raphInt.DES, normalized=TRUE)
-filter <- rowSums(nc >= 10) >= 2
-raphInt.DES <- raphInt.DES[filter,]
+##Remove low count genes
+#raphInt.DES <- estimateSizeFactors(raphInt.DES)
+#nc <- counts(raphInt.DES, normalized=TRUE)
+#filter <- rowSums(nc >= 10) >= 2
+#raphInt.DES <- raphInt.DES[filter,]
 
 raphInt.DES  <- DESeq( raphInt.DES , betaPrior = FALSE)
 
@@ -271,7 +277,8 @@ summary(results_hvl, alpha= p.threshold)
 
 ## DESeq2 - High vs Low, WITH interaction
 ## contrast=c(column, numerator, denominator)
-Intresults_hvl <- results( raphInt.DES, contrast=c("Line", "High", "Low"), cooksCutoff=FALSE, independentFiltering=TRUE, pAdjustMethod="BH", alpha = p.threshold)
+Intresults_hvl <- results( raphInt.DES, contrast=c("Line", "High", "Low"), cooksCutoff=FALSE, independentFiltering=TRUE, # addMLE=TRUE, Error in results(raphInt.DES, contrast = c("Line", "High", "Low"), cooksCutoff = FALSE, addMLE=TRUE is only for when a beta prior was used. otherwise, the log2 fold changes are already MLE 
+pAdjustMethod="BH", alpha = p.threshold)
 
   Intresults_hvl$threshold <- as.logical( Intresults_hvl$padj < p.threshold )
     Intgenes_hvl <- row.names( Intresults_hvl )[ which( Intresults_hvl$threshold )]
@@ -293,13 +300,13 @@ In all the following heatmaps, samples/genes are clustered by Euclidian distance
 A heatmap of expression levels for all genes in all individuals shows that the overall expression is very similar across individuals
 
 ```{r PlainLineHeatmap, echo=FALSE, fig.path="../figures/", fig.keep="last", fig.width=11}
-select <- order(rowMeans(counts(raph.DES,normalized=TRUE)),decreasing=TRUE)
+select_all <- order(rowMeans(counts(raph.DES,normalized=TRUE)),decreasing=TRUE)
 
 df <- as.data.frame(colData(raph.DES)[,c("Line","Location")])
 
 vsd <- varianceStabilizingTransformation(raph.DES, blind=TRUE)
 
-pheatmap(assay(vsd)[select,], cluster_rows=FALSE, show_rownames=FALSE, cluster_cols=FALSE, annotation_col=df)
+pheatmap(assay(vsd)[select_all,], cluster_rows=FALSE, show_rownames=FALSE, cluster_cols=FALSE, annotation_col=df)
 
 ```
 
@@ -365,7 +372,7 @@ pheatmap(sampleDistMatrix,
 First two components of a PCA of the same normalized distance matrix used in the previous heatmap. These two vectors capture nearly 40% of the variance, but this seems to be mostly capturing Reed/KBS. 
 
 ```{r plainPCA, echo=FALSE, fig.path="../figures/", fig.keep="last", fig.width=11}
-vsd_df <- as.data.frame(assay(vsd)[select,])
+vsd_df <- as.data.frame(assay(vsd)[select_all,])
 
 
 cowplot::plot_grid( plotPCA(vsd, intgroup="Location"),
@@ -373,14 +380,14 @@ cowplot::plot_grid( plotPCA(vsd, intgroup="Location"),
                     plotPCA(vsd, intgroup=c( "Location", "Line")),
                            align="c", ncol=2)
                    
-pca_vsd <- prcomp( vsd_df )  #index here to remove 'not_featured'
-plot(pca_vsd$x[,1], pca_vsd$x[,2])
+#pca_vsd <- prcomp( vsd_df )  #index here to remove 'not_featured'
+#plot(pca_vsd$x[,1], pca_vsd$x[,2])
 
-pca_vsd_lab <- as.data.frame( t(pca_vsd$x )) %>% 
-                  mutate(name=rownames(t(pca_vsd$x))) %>%
-                  inner_join( df )
+#pca_vsd_lab <- as.data.frame( t(pca_vsd$x )) %>% 
+                 # mutate(name=rownames(t(pca_vsd$x))) %>%
+                 # inner_join( df )
 
-plot(pca_vsd$PC1, pca_vsd$PC2)
+#plot(pca_vsd$PC1, pca_vsd$PC2)
 
 
 ```
@@ -417,9 +424,9 @@ We have `r length(colnames(ALLTHEGENES))-1` individuals, with reads aligned to `
 ##Modeling
 `DESeq2` uses a modified design matrix that allows it do perform shrinkage analysis. This modification results in the intercept being the midpoint between the two predictors of interest, and makes the results table increasingly un-interpretable with increasing model complexity. Ideally, we would like to model expression as:
 
-`~ Location:Line + FlowCell + Location +  Line`
+`~ Location:Line + FlowCell +  Line`
 
-Where Line (High or Low) is the predictor of interest. Location accounts for differences due to lines being grown at Reed vs KBS. Due to the experimental setup, FlowCell is perfectly confounded with the date of the sequencing run and accounts for differences due to sequencing runs. Location*Line accounts for any interactions between selection line and rearing location.
+Where Line (High or Low) is the predictor of interest. Due to the experimental setup, FlowCell is perfectly confounded with the date of the sequencing run and accounts for differences due to sequencing runs. Location*Line accounts for any interactions between selection line and replicate (Reed vs KBS).
 
 Unfortunatly, we cannot run this model *and* estimate Log2 fold change shrinkage. Essentially, the way `DESeq2` is written, the modified model matrix can't handle interaction terms. This is partially just a problem of interpretation, the model will acutally run, but the output is incomprehensible, but also mathmatical, as the model is now attempting to shrink the group mean estimates to zero rather than trying to shrink the estimated differences to zero. There are three possible solutions to this:
 
@@ -430,9 +437,8 @@ Unfortunatly, we cannot run this model *and* estimate Log2 fold change shrinkage
 ###Psuedo-interaction  
 Option 1 is the preferred method of the `DESeq2` authors, but won't work for our dataset. If we make a new, four level factor that is ReedHigh, ReedLow, KBSHigh, KBSLow to look for interaction effects, and run the model:
 
-`~ LocationLine + FlowCell + Location +  Line`
+`~ LocationLine + FlowCell`
 
-LocationLine will be perfectly confounded with Location and Line, because KBS plants were never grown at Reed, High is never Low, etc. We *could* use this method to model other interactions, like LineFlowCell, but not this one.
 
 ###Drop interaction
 Option 2 may give reasonable results, we would lose the ability to find genes that have interaction effects that cancel each other out, however we should have increased ability to detect outliers because the shrinkage analysis will work as designed. 
@@ -440,7 +446,6 @@ Option 2 may give reasonable results, we would lose the ability to find genes th
 ###Use interaction
 Option 3 may also give reasonable results, however, we will lose Log2 fold shrinkage, so fold change will be over-estimated in some cases. However, this option would ensure that any interaction effects are modeled out of the final Line contrast, which may mean that we can find differentially expressed genes that would have otherwise been hidden by interactions.
 
-I'm comparing the results of Option 2 and Option 3.
 
 ##Results
 
@@ -474,7 +479,7 @@ plotMA( results_hvl, MLE=FALSE, main="Shrunken LFC", ylim=c(-3,3), alpha=p.thres
 
 ##With Interaction, unshrunken log2 fold change
 
-Model  ~ Location:Line + FlowCell + Location + Line  (no interaction term)
+Model  ~ Location:Line + FlowCell + Line  (interaction term)
 
 This model found `r sum(Intresults_hvl$padj < p.threshold, na.rm = TRUE)` differentially expressed genes with a p value < .05
 
@@ -492,7 +497,11 @@ plotDispEsts( raphInt.DES )
 Since this model has an interaction term, the log2 fold change estimates are unshrunken. As expected, these estimates are quite large, especially in the genes with lower overall expression.
 
 ```{r IntMAplot, echo=FALSE}
-plotMA( Intresults_hvl, main="unshrunken LFC", ylim=c(-3,3), alpha=p.threshold  )
+
+#plotMA( Intresults_hvl, MLE=TRUE, main="unshrunken LFC", ylim=c(-3,3), alpha=p.threshold )
+
+plotMA( Intresults_hvl, MLE=FALSE, main="Only available LFC", ylim=c(-3,3), alpha=p.threshold  )
+
 
 ```
 

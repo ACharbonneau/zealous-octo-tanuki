@@ -7,7 +7,9 @@
 #Change Derives_from from number.1 to number:
 less /mnt/research/radishGenomics/PublicData/2016RsativusGenome/Rs_1.0.Gene.LFY.gff.gz | sed -r s/\(Derives_from=Rs[0-9]+\)\.[0-9]/\\1/g > /mnt/research/radishGenomics/PublicData/2016RsativusGenome/Edited_Rs_1.0.Gene.LFY.gff
 
-qsub scripts/4_bt2_build.qsub -N Jeong2016 -v genome=/mnt/research/radishGenomics/PublicData/2016RsativusGenome/Rs_1.0.chromosomes.fix.fasta,gff=/mnt/research/radishGenomics/PublicData/2016RsativusGenome/Edited_Rs_1.0.Gene.LFY.gff,gffi="Derives_from",exon="protein",stranded="yes"
+qsub scripts/4_bt2_build.qsub -N Jeong2016_BT -v genome=/mnt/research/radishGenomics/PublicData/2016RsativusGenome/Rs_1.0.chromosomes.fix.fasta,gff=/mnt/research/radishGenomics/PublicData/2016RsativusGenome/Edited_Rs_1.0.Gene.LFY.gff,gffi="Derives_from",exon="protein",stranded="yes"
+
+qsub scripts/4_gmap_build.qsub -N Jeong2016_GS -v genome=/mnt/research/radishGenomics/PublicData/2016RsativusGenome/Rs_1.0.chromosomes.fix.fasta,gff=/mnt/research/radishGenomics/PublicData/2016RsativusGenome/Edited_Rs_1.0.Gene.LFY.gff,gffi="Derives_from",exon="protein",stranded="yes"
 
 #Sativus Genome: Draft sequences of the radish (Raphanus sativus L.) genome
 #Kitashiba H, Li F, Hirakawa H, Kawanabe T, Zou Z, Hasegawa Y, Tonosaki K,
@@ -17,14 +19,18 @@ qsub scripts/4_bt2_build.qsub -N Jeong2016 -v genome=/mnt/research/radishGenomic
 #Get FASTA into right format
 awk '/^>/ {printf("\n%s\n",$0);next; } { printf("%s",$0);}  END {printf("\n");}' < /mnt/research/radishGenomics/PublicData/RsativusGenome/RSA_r1.0 > /mnt/research/radishGenomics/PublicData/RsativusGenome/Edit_RSA_r1.0.fasta
 
-qsub scripts/4_bt2_build.qsub -N Kitashiba2014 -v genome=/mnt/research/radishGenomics/PublicData/RsativusGenome/Edit_RSA_r1.0.fasta,gff=/mnt/research/radishGenomics/PublicData/RsativusGenome/RSA_r1.0_genes.gff3.gz,gffi="Parent",exon="exon",stranded="no"
+qsub scripts/4_bt2_build.qsub -N Kitashiba2014_BT -v genome=/mnt/research/radishGenomics/PublicData/RsativusGenome/Edit_RSA_r1.0.fasta,gff=/mnt/research/radishGenomics/PublicData/RsativusGenome/RSA_r1.0_genes.gff3.gz,gffi="Parent",exon="exon",stranded="no"
+
+qsub scripts/4_gmap_build.qsub -N Kitashiba2014_GS -v genome=/mnt/research/radishGenomics/PublicData/RsativusGenome/Edit_RSA_r1.0.fasta,gff=/mnt/research/radishGenomics/PublicData/RsativusGenome/RSA_r1.0_genes.gff3.gz,gffi="Parent",exon="exon",stranded="no"
 
 #Sativus Genome: Mitsui, Y., Shimomura, M., Komatsu, K., Namiki, N.,
 #Shibata-Hatta, M., Imai, M., et al. (2015). The radish genome and comprehensive
 #gene expression profile of tuberous root formation and development.
 #Nature Publishing Group, 1–14. http://doi.org/10.1038/srep10835
 
-qsub scripts/4_bt2_build.qsub -N Mitsui2015 -v genome=/mnt/research/radishGenomics/PublicData/2015_RsativusGenome/rsg_all_v1.fasta,gff=/mnt/research/radishGenomics/PublicData/2015_RsativusGenome/rsgv1.gff,gffi="Parent",exon="CDS",stranded="no"
+qsub scripts/4_bt2_build.qsub -N Mitsui2015_BT -v genome=/mnt/research/radishGenomics/PublicData/2015_RsativusGenome/rsg_all_v1.fasta,gff=/mnt/research/radishGenomics/PublicData/2015_RsativusGenome/rsgv1.gff,gffi="Parent",exon="CDS",stranded="no"
+qsub scripts/4_gmap_build.qsub -N Mitsui2015_GS -v genome=/mnt/research/radishGenomics/PublicData/2015_RsativusGenome/rsg_all_v1.fasta,gff=/mnt/research/radishGenomics/PublicData/2015_RsativusGenome/rsgv1.gff,gffi="Parent",exon="CDS",stranded="no"
+
 
 #Raphanistrum Genome: Moghe, G. D., Hufnagel, D. E., Tang, H., Xiao, Y.,
 #Dworkin, I., Town, C. D., et al. (2014). Consequences of Whole-Genome
@@ -32,11 +38,13 @@ qsub scripts/4_bt2_build.qsub -N Mitsui2015 -v genome=/mnt/research/radishGenomi
 #Raphanus raphanistrum and Three Other Brassicaceae Species. The Plant Cell
 #Online, 26(5), 1925–1937. http://doi.org/10.1105/tpc.114.124297
 
-qsub scripts/4_bt2_build.qsub -N Moghe2014 -v genome=/mnt/research/radishGenomics/AnalysisOfSequencingFiles/MoghePublished/RrContigs.fa.fasta,gff=/mnt/research/radishGenomics/AnalysisOfSequencingFiles/MoghePublished/Rr_gene_pseu.gff.mod,gffi="Parent",exon="exon",stranded="no"
+qsub scripts/4_bt2_build.qsub -N Moghe2014_BT -v genome=/mnt/research/radishGenomics/AnalysisOfSequencingFiles/MoghePublished/RrContigs.fa.fasta,gff=/mnt/research/radishGenomics/AnalysisOfSequencingFiles/MoghePublished/Rr_gene_pseu.gff.mod,gffi="Parent",exon="exon",stranded="no"
+qsub scripts/4_gmap_build.qsub -N Moghe2014_GS -v genome=/mnt/research/radishGenomics/AnalysisOfSequencingFiles/MoghePublished/RrContigs.fa.fasta,gff=/mnt/research/radishGenomics/AnalysisOfSequencingFiles/MoghePublished/Rr_gene_pseu.gff.mod,gffi="Parent",exon="exon",stranded="no"
 
-#Brassica oleracea UNIGENES, unique. ftp://ftp.ncbi.nih.gov/repository/UniGene/
-#Tack thinks this is the best thing to map to
 
-awk '/^>/ {printf("\n%s\n",$0);next; } { printf("%s",$0);}  END {printf("\n");}' < /mnt/research/radishGenomics/PublicData/brassica_oleracea/Bol.seq.uniq > /mnt/research/radishGenomics/PublicData/brassica_oleracea/Edit_Bol.seq.uniq
+#Raphanistrum transcriptome RR3_NY
+#ESTs
 
-qsub scripts/4_bt2_build.qsub -N BO_UNI -v genome=/mnt/research/radishGenomics/PublicData/brassica_oleracea/Edit_Bol.seq.uniq,gff=NA,gffi="NA",exon="NA",stranded="NA"
+qsub scripts/4_bt2_build.qsub -N RR3_NY_EST_BT -v genome=/mnt/research/radishGenomics/AnalysisOfSequencingFiles/EST_7pops/RR3_NY/1000017.est,gff=NA,gffi="NA",exon="NA",stranded="NA"
+qsub scripts/4_gmap_build.qsub -N RR3_NY_EST_GS -v genome=/mnt/research/radishGenomics/AnalysisOfSequencingFiles/EST_7pops/RR3_NY/1000017.est,gff=NA,gffi="NA",exon="NA",stranded="NA"
+
