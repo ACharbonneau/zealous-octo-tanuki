@@ -17,6 +17,8 @@ module load SAMTools/1.2
 
 cd ${PBS_O_WORKDIR} || exit
 
+
+
 # Filters out any mapping qualities less than 30
 echo ${bsname}
 
@@ -27,4 +29,18 @@ samtools sort ${job}.bam ${job}.sorted
 
 samtools index ${job}.sorted.bam
 
+### Send transcriptome to samtools
+
+if [ "$gff" = "NA" ]
+
+samtools idxstats ${job}.sorted.bam
+		
+fi
+
+
+### Send genomes to HTseq
+if [ "$gff" != "NA" ]
+
 qsub ../scripts/7_htseq.qsub -N ${bsname}.HTseq -v genome="${genome}",index="${index}",gff="${gff}",bsname="${bsname}",indiv="${indiv}",job="${job}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
+
+fi
