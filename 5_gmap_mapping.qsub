@@ -32,7 +32,7 @@ module load bowtie2/2.2.6
 
 echo bsname="${PBS_JOBNAME}"
 
-gsnap -d ${PBS_JOBNAME} --force-single-end ../${indiv}t -k 15 -A sam -N 1 -O -n 1 -Q --nofails -o ${PBS_JOBNAME}.sam
+gsnap -d ${PBS_JOBNAME} --force-single-end ../${indiv} -k 15 -A sam -N 1 -O -n 1 -Q --nofails -o ${PBS_JOBNAME}.sam
 
 
 
