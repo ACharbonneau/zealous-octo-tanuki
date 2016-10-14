@@ -19,7 +19,7 @@ qsub scripts/4_gmap_build.qsub -N Jeong2016_GS -v genome=/mnt/research/radishGen
 #Get FASTA into right format
 awk '/^>/ {printf("\n%s\n",$0);next; } { printf("%s",$0);}  END {printf("\n");}' < /mnt/research/radishGenomics/PublicData/RsativusGenome/RSA_r1.0 > /mnt/research/radishGenomics/PublicData/RsativusGenome/Edit_RSA_r1.0.fasta
 
-qsub scripts/4_bt2_build.qsub -N Kitashiba2014_BT -v genome=/mnt/research/radishGenomics/PublicData/RsativusGenome/Edit_RSA_r1.0.fasta,gff=/mnt/research/radishGenomics/PublicData/RsativusGenome/RSA_r1.0_genes.gff3.gz,gffi="Parent",exon="exon",stranded="no"
+#qsub scripts/4_bt2_build.qsub -N Kitashiba2014_BT -v genome=/mnt/research/radishGenomics/PublicData/RsativusGenome/Edit_RSA_r1.0.fasta,gff=/mnt/research/radishGenomics/PublicData/RsativusGenome/RSA_r1.0_genes.gff3.gz,gffi="Parent",exon="exon",stranded="no"
 
 qsub scripts/4_gmap_build.qsub -N Kitashiba2014_GS -v genome=/mnt/research/radishGenomics/PublicData/RsativusGenome/Edit_RSA_r1.0.fasta,gff=/mnt/research/radishGenomics/PublicData/RsativusGenome/RSA_r1.0_genes.gff3.gz,gffi="Parent",exon="exon",stranded="no"
 
@@ -28,7 +28,7 @@ qsub scripts/4_gmap_build.qsub -N Kitashiba2014_GS -v genome=/mnt/research/radis
 #gene expression profile of tuberous root formation and development.
 #Nature Publishing Group, 1–14. http://doi.org/10.1038/srep10835
 
-qsub scripts/4_bt2_build.qsub -N Mitsui2015_BT -v genome=/mnt/research/radishGenomics/PublicData/2015_RsativusGenome/rsg_all_v1.fasta,gff=/mnt/research/radishGenomics/PublicData/2015_RsativusGenome/rsgv1.gff,gffi="Parent",exon="CDS",stranded="no"
+#qsub scripts/4_bt2_build.qsub -N Mitsui2015_BT -v genome=/mnt/research/radishGenomics/PublicData/2015_RsativusGenome/rsg_all_v1.fasta,gff=/mnt/research/radishGenomics/PublicData/2015_RsativusGenome/rsgv1.gff,gffi="Parent",exon="CDS",stranded="no"
 qsub scripts/4_gmap_build.qsub -N Mitsui2015_GS -v genome=/mnt/research/radishGenomics/PublicData/2015_RsativusGenome/rsg_all_v1.fasta,gff=/mnt/research/radishGenomics/PublicData/2015_RsativusGenome/rsgv1.gff,gffi="Parent",exon="CDS",stranded="no"
 
 
@@ -38,13 +38,13 @@ qsub scripts/4_gmap_build.qsub -N Mitsui2015_GS -v genome=/mnt/research/radishGe
 #Raphanus raphanistrum and Three Other Brassicaceae Species. The Plant Cell
 #Online, 26(5), 1925–1937. http://doi.org/10.1105/tpc.114.124297
 
-qsub scripts/4_bt2_build.qsub -N Moghe2014_BT -v genome=/mnt/research/radishGenomics/AnalysisOfSequencingFiles/MoghePublished/RrContigs.fa.fasta,gff=/mnt/research/radishGenomics/AnalysisOfSequencingFiles/MoghePublished/Rr_gene_pseu.gff.mod,gffi="Parent",exon="exon",stranded="no"
+#qsub scripts/4_bt2_build.qsub -N Moghe2014_BT -v genome=/mnt/research/radishGenomics/AnalysisOfSequencingFiles/MoghePublished/RrContigs.fa.fasta,gff=/mnt/research/radishGenomics/AnalysisOfSequencingFiles/MoghePublished/Rr_gene_pseu.gff.mod,gffi="Parent",exon="exon",stranded="no"
 qsub scripts/4_gmap_build.qsub -N Moghe2014_GS -v genome=/mnt/research/radishGenomics/AnalysisOfSequencingFiles/MoghePublished/RrContigs.fa.fasta,gff=/mnt/research/radishGenomics/AnalysisOfSequencingFiles/MoghePublished/Rr_gene_pseu.gff.mod,gffi="Parent",exon="exon",stranded="no"
 
 
 #Raphanistrum transcriptome RR3_NY
 #ESTs
 
-qsub scripts/4_bt2_build.qsub -N RR3_NY_EST_BT -v genome=/mnt/research/radishGenomics/AnalysisOfSequencingFiles/EST_7pops/RR3_NY/1000017.est,gff=NA,gffi="NA",exon="NA",stranded="NA"
+#qsub scripts/4_bt2_build.qsub -N RR3_NY_EST_BT -v genome=/mnt/research/radishGenomics/AnalysisOfSequencingFiles/EST_7pops/RR3_NY/1000017.est,gff=NA,gffi="NA",exon="NA",stranded="NA"
 qsub scripts/4_gmap_build.qsub -N RR3_NY_EST_GS -v genome=/mnt/research/radishGenomics/AnalysisOfSequencingFiles/EST_7pops/RR3_NY/1000017.est,gff=NA,gffi="NA",exon="NA",stranded="NA"
 
