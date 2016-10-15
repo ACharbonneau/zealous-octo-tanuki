@@ -5,3 +5,5 @@ qsub ../scripts/BUSCO.qsub -N Kitashiba2014 -v genome=/mnt/research/radishGenomi
 qsub ../scripts/BUSCO.qsub -N Mitsui2015 -v genome=/mnt/research/radishGenomics/PublicData/2015_RsativusGenome/rsg_all_v1.fasta
 
 qsub ../scripts/BUSCO.qsub -N Moghe2014 -v genome=/mnt/research/radishGenomics/AnalysisOfSequencingFiles/MoghePublished/RrContigs.fa.fasta
+
+qsub ../scripts/BUSCO.qsub -N AT2016 -v genome=TAIR10.fas

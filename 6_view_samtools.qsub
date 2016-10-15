@@ -33,7 +33,7 @@ samtools index ${job}.sorted.bam
 
 if [ "$gff" = "NA" ]
 
-samtools idxstats ${job}.sorted.bam
+then samtools idxstats ${job}.sorted.bam
 		
 fi
 
@@ -41,6 +41,6 @@ fi
 ### Send genomes to HTseq
 if [ "$gff" != "NA" ]
 
-qsub ../scripts/7_htseq.qsub -N ${bsname}.HTseq -v genome="${genome}",index="${index}",gff="${gff}",bsname="${bsname}",indiv="${indiv}",job="${job}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
+then qsub ../scripts/7_htseq.qsub -N ${bsname}.HTseq -v genome="${genome}",index="${index}",gff="${gff}",bsname="${bsname}",indiv="${indiv}",job="${job}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
 
 fi
