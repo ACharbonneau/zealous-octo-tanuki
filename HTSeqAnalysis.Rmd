@@ -459,7 +459,7 @@ Model:
 This model found `r sum(Presults_hvl$padj < p.threshold, na.rm = TRUE)` differentially expressed genes with a p value < .05
 
 ####Summary Information from model and graph of dispersion shrinkage
-```{r PlainSummaryplots, echo=FALSE}
+```{r PseudoSummaryplots, echo=FALSE}
 #Summary of modeled values that meet the specified adjusted p-value cutoff
 summary( Presults_hvl, alpha=p.threshold)
     
