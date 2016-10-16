@@ -18,7 +18,7 @@ rm(list = ls())
 #Setting a reasonable p-value threshold to be used throughout
 p.threshold <- 0.05
 
-countsDir <- file.path("../Kitashiba2014_0")
+countsDir <- file.path("../Kitashiba2014")
 outputfilenamePlain <- ("../DEseqOutput/Kitashiba2014_deseq2_expr_changes_HvL.csv")
 outputfilenameInteraction <- ("../DEseqOutput/Kitashiba2014_deseq2_expr_changes_Int_HvL.csv")
 outputfilenameCounts <- ("../DEseqOutput/Kitashiba2014_counts.csv")
@@ -28,21 +28,6 @@ outputfilenameCounts <- ("../DEseqOutput/Kitashiba2014_counts.csv")
 #Reference level is Low
 ```
 
-```{r GlobalKitashiba1, echo=FALSE, eval=FALSE}
-
-#Setting a reasonable p-value threshold to be used throughout
-p.threshold <- 0.05
-
-countsDir <- file.path("../Kitashiba2014_1")
-outputfilenamePlain <- ("../DEseqOutput/Kitashiba2014_deseq2_expr_changes_HvL_1.csv")
-outputfilenameInteraction <- ("../DEseqOutput/Kitashiba2014_deseq2_expr_changes_Int_HvL_1.csv")
-outputfilenameCounts <- ("../DEseqOutput/Kitashiba2014_counts_1.csv")
-#For other genomes, also have to change gene number indexing on line 251 or the lda won't run
-
-#Reference level is Low
-
-```
-
 
 ```{r GlobalMitsui2015}
 
@@ -50,23 +35,12 @@ outputfilenameCounts <- ("../DEseqOutput/Kitashiba2014_counts_1.csv")
 #Setting a reasonable p-value threshold to be used throughout
 p.threshold <- 0.05
 
-countsDir <- file.path("../Mitsui2015_0")
+countsDir <- file.path("../Mitsui2015")
 outputfilenamePlain <- ("../DEseqOutput/Mitsui2015_deseq2_expr_changes_HvL.csv")
+outputfilenamePseudoHvL <- ("../DEseqOutput/Mitsui2015_deseq2_expr_changes_HvL.csv")
+outputfilenamePseudoKvR <- ("../DEseqOutput/Mitsui2015_deseq2_expr_changes_KvR.csv")
 outputfilenameInteraction <- ("../DEseqOutput/Mitsui2015_deseq2_expr_changes_Int_HvL.csv")
 outputfilenameCounts <- ("../DEseqOutput/Mitsui2015_counts.csv")
-#Reference level is Low
-```
-
-```{r GlobalMitsui2015_1, echo=FALSE, eval=FALSE}
-
-
-#Setting a reasonable p-value threshold to be used throughout
-p.threshold <- 0.05
-
-countsDir <- file.path("../Mitsui2015_1")
-outputfilenamePlain <- ("../DEseqOutput/Mitsui2015_deseq2_expr_changes_HvL_1.csv")
-outputfilenameInteraction <- ("../DEseqOutput/Mitsui2015_deseq2_expr_changes_Int_HvL_1.csv")
-outputfilenameCounts <- ("../DEseqOutput/Mitsui2015_counts_1.csv")
 #Reference level is Low
 ```
 
@@ -77,7 +51,7 @@ outputfilenameCounts <- ("../DEseqOutput/Mitsui2015_counts_1.csv")
 #Setting a reasonable p-value threshold to be used throughout
 p.threshold <- 0.05
 
-countsDir <- file.path("../Jeong2016_0")
+countsDir <- file.path("../Jeong2016")
 outputfilenamePlain <- ("../DEseqOutput/Jeong2016_deseq2_expr_changes_HvL.csv")
 outputfilenameInteraction <- ("../DEseqOutput/Jeong2016_deseq2_expr_changes_Int_HvL.csv")
 outputfilenameCounts <- ("../DEseqOutput/Jeong2016_counts.csv")
@@ -85,19 +59,6 @@ outputfilenameCounts <- ("../DEseqOutput/Jeong2016_counts.csv")
 #Reference level is Low
 ```
 
-```{r GlobalJeong2016_1, echo=FALSE, eval=FALSE}
-
-
-#Setting a reasonable p-value threshold to be used throughout
-p.threshold <- 0.05
-
-countsDir <- file.path("../Jeong2016_1")
-outputfilenamePlain <- ("../DEseqOutput/Jeong2016_deseq2_expr_changes_HvL_1.csv")
-outputfilenameInteraction <- ("../DEseqOutput/Jeong2016_deseq2_expr_changes_Int_HvL_1.csv")
-outputfilenameCounts <- ("../DEseqOutput/Jeong2016_counts_1.csv")
-
-#Reference level is Low
-```
 
 
 ```{r GlobalMoghe2014, echo=FALSE, eval=FALSE}
@@ -106,7 +67,7 @@ outputfilenameCounts <- ("../DEseqOutput/Jeong2016_counts_1.csv")
 #Setting a reasonable p-value threshold to be used throughout
 p.threshold <- 0.05
 
-countsDir <- file.path("../Moghe2014_0")
+countsDir <- file.path("../Moghe2014")
 outputfilenamePlain <- ("../DEseqOutput/Moghe2014_deseq2_expr_changes_HvL.csv")
 outputfilenameInteraction <- ("../DEseqOutput/Moghe2014_deseq2_expr_changes_Int_HvL.csv")
 outputfilenameCounts <- ("../DEseqOutput/Moghe2014_counts.csv")
@@ -116,17 +77,16 @@ outputfilenameCounts <- ("../DEseqOutput/Moghe2014_counts.csv")
 ```
 
 
-
-```{r GlobalMoghe2014_1, echo=FALSE, eval=FALSE}
+```{r GlobalTranscriptome, echo=FALSE, eval=FALSE}
 
 
 #Setting a reasonable p-value threshold to be used throughout
 p.threshold <- 0.05
 
-countsDir <- file.path("../Moghe2014_1")
-outputfilenamePlain <- ("../DEseqOutput/Moghe2014_deseq2_expr_changes_HvL_1.csv")
-outputfilenameInteraction <- ("../DEseqOutput/Moghe2014_deseq2_expr_changes_Int_HvL.csv_1")
-outputfilenameCounts <- ("../DEseqOutput/Moghe2014_counts_1.csv")
+countsDir <- file.path("../")
+outputfilenamePlain <- ("../DEseqOutput/Moghe2014_deseq2_expr_changes_HvL.csv")
+outputfilenameInteraction <- ("../DEseqOutput/Moghe2014_deseq2_expr_changes_Int_HvL.csv")
+outputfilenameCounts <- ("../DEseqOutput/Moghe2014_counts.csv")
 
 
 #Reference level is Low
@@ -142,6 +102,7 @@ require(pheatmap)
 require(cowplot)
 require(RColorBrewer)
 require(dplyr)
+require(ggrepel)
 
 
 ```
@@ -241,9 +202,11 @@ raph.DES <- DESeq( raph.DES )
 
 ## One with pseudointeractions
 
-raphpsedo.DES <- DESeqDataSetFromMatrix(countData = exprs( raph.est ), colData = pData( raph.est ), design = ~ LocationLine + FlowCell )
+raphpseudo.DES <- DESeqDataSetFromMatrix(countData = exprs( raph.est ), colData = pData( raph.est ), design = ~ LocationLine + FlowCell )
 
-## One with interactions
+raphpseudo.DES <- DESeq( raphpseudo.DES )
+
+## One with real interactions
 raphInt.DES <- DESeqDataSetFromMatrix(countData = exprs( raph.est ), colData = pData( raph.est ), design = ~ FlowCell + Line + Location:Line )
 
 ##Remove low count genes
@@ -252,7 +215,7 @@ raphInt.DES <- DESeqDataSetFromMatrix(countData = exprs( raph.est ), colData = p
 #filter <- rowSums(nc >= 10) >= 2
 #raphInt.DES <- raphInt.DES[filter,]
 
-raphInt.DES  <- DESeq( raphInt.DES , betaPrior = FALSE)
+raphInt.DES  <- DESeq( raphInt.DES)
 
 #raphInt.DES <- estimateSizeFactors(raphInt.DES)
 #raphInt.DES <- estimateDispersions(raphInt.DES)
@@ -274,6 +237,18 @@ results_hvl <- results( raph.DES, contrast=c("Line", "High", "Low"), cooksCutoff
 results_hvl <- results_hvl[order(results_hvl$padj),]   
 
 summary(results_hvl, alpha= p.threshold)
+
+## DESeq2 - High vs Low, with PSEUDO interaction
+## contrast=c(column, numerator, denominator)
+
+Presults_hRvhK <- results( raphpseudo.DES, contrast=c("LocationLine", "ReedHigh", "KBSHigh"), cooksCutoff=FALSE, independentFiltering=TRUE, addMLE=TRUE, pAdjustMethod="BH", alpha = p.threshold)
+
+Presults_hKvlK <- results( raphpseudo.DES, contrast=c("LocationLine", "KBSHigh", "KBSLow"), cooksCutoff=FALSE, independentFiltering=TRUE, addMLE=TRUE, pAdjustMethod="BH", alpha = p.threshold)
+
+Presults_lRvlK <- results( raphpseudo.DES, contrast=c("LocationLine", "KBSLow", "ReedLow"), cooksCutoff=FALSE, independentFiltering=TRUE, addMLE=TRUE, pAdjustMethod="BH", alpha = p.threshold)
+
+Presults_hRvlR <- results( raphpseudo.DES, contrast=c("LocationLine", "ReedHigh", "ReedLow"), cooksCutoff=FALSE, independentFiltering=TRUE, addMLE=TRUE, pAdjustMethod="BH", alpha = p.threshold)
+
 
 ## DESeq2 - High vs Low, WITH interaction
 ## contrast=c(column, numerator, denominator)
@@ -435,10 +410,11 @@ Unfortunatly, we cannot run this model *and* estimate Log2 fold change shrinkage
   3. Use the interaction term, and revert to standard model matrices
 
 ###Psuedo-interaction  
-Option 1 is the preferred method of the `DESeq2` authors, but won't work for our dataset. If we make a new, four level factor that is ReedHigh, ReedLow, KBSHigh, KBSLow to look for interaction effects, and run the model:
+Option 1 is the preferred method of the `DESeq2` authors, but will take some extra processing for our dataset. If we make a new, four level factor that is ReedHigh, ReedLow, KBSHigh, KBSLow to look for interaction effects, and run the model:
 
 `~ LocationLine + FlowCell`
 
+Then we'll get gene lists for all four conditions. To get the high vs low genes, I'll have to take the intersection of ReedHigh vs ReedLow and KBSHigh vs KBSLow.
 
 ###Drop interaction
 Option 2 may give reasonable results, we would lose the ability to find genes that have interaction effects that cancel each other out, however we should have increased ability to detect outliers because the shrinkage analysis will work as designed. 
@@ -475,6 +451,31 @@ plotMA( results_hvl, MLE=FALSE, main="Shrunken LFC", ylim=c(-3,3), alpha=p.thres
 
 ```
 
+###Pseudo Interaction, shrunken log2 fold change
+Model:  
+
+`~ FlowCell + LocationLine`  (no interaction term)
+
+This model found `r sum(Presults_hvl$padj < p.threshold, na.rm = TRUE)` differentially expressed genes with a p value < .05
+
+####Summary Information from model and graph of dispersion shrinkage
+```{r PlainSummaryplots, echo=FALSE}
+#Summary of modeled values that meet the specified adjusted p-value cutoff
+summary( Presults_hvl, alpha=p.threshold)
+    
+# Plot dispersion estimates
+plotDispEsts( raphpseudo.DES )
+```
+
+####Log2 fold change
+Since this model doesn't have an interaction term, the log2 fold change estimates are shrunken, and we can compare the shrunken and unshrunken estimates. Here, as expected, the lowest estimates are pulled much closer to the midline of the graph for the shrunken values. However, the model doesn't seem to be over-shrinking, as there are still many signifigant (red) values, including some that fall outside the plot (triangles).
+
+```{r MAplots, echo=FALSE}
+plotMA( Presults_hvl, MLE=TRUE, main="unshrunken LFC", ylim=c(-3,3), alpha=p.threshold )
+
+plotMA( Presults_hvl, MLE=FALSE, main="Shrunken LFC", ylim=c(-3,3), alpha=p.threshold  )
+
+```
 
 
 ##With Interaction, unshrunken log2 fold change
@@ -527,6 +528,97 @@ ggplot(results_hvl_df, aes(log2FoldChange, log10(baseMean))) + geom_point(aes(co
 
 ```
 
+```{r PseudoGeneListHvL, echo=FALSE, results='hide'}
+
+#Get both HvL
+
+Presults_hRvlR_df <- data.frame( Presults_hRvlR, MLE=T )
+
+Presults_hRvlR_df$gene_name <- row.names( Presults_hRvlR )
+
+Presults_hKvlK_df <- data.frame( Presults_hKvlK, MLE=T )
+
+Presults_hKvlK_df$gene_name <- row.names( Presults_hKvlK )
+
+#Insert new columns and filter
+
+Presults_hRvlR_df <- filter(Presults_hRvlR_df, !is.na(log2FoldChange))
+Presults_hKvlK_df <- filter(Presults_hKvlK_df, !is.na(log2FoldChange))
+
+Presults_hRvlR_df$FC <- logratio2foldchange(Presults_hRvlR_df$log2FoldChange)
+Presults_hKvlK_df$FC <- logratio2foldchange(Presults_hKvlK_df$log2FoldChange)
+
+Presults_hRvlR_df$ABlog2FoldChange <- abs(Presults_hRvlR_df$log2FoldChange)
+Presults_hKvlK_df$ABlog2FoldChange <- abs(Presults_hKvlK_df$log2FoldChange)
+
+
+#Get intersection of hvl
+Presults_hvl_df <- inner_join(Presults_hRvlR_df, Presults_hKvlK_df, by=c("gene_name" = "gene_name"))
+
+Presults_hvl_df <- mutate(Presults_hvl_df, AB_BM_Reed=ABlog2FoldChange.x*baseMean.x, AB_BM_KBS=ABlog2FoldChange.y*baseMean.y, diffL2FC=abs( ABlog2FoldChange.x - ABlog2FoldChange.y ) )
+
+write.csv( Presults_hvl_df, outputfilenamePseudoHvL, quote=FALSE, row.names=FALSE)
+
+plot_grid(
+ggplot(Presults_hvl_df, aes(log2FoldChange.x, baseMean.x, label=gene_name)) +
+    geom_text_repel(data=filter( Presults_hvl_df, baseMean.x > 30), aes(col=padj.x)) +
+    geom_point(aes(col=padj.y)) + 
+    labs(title = "High vs Low Reed", x="Log 2 Fold Change", y="Base Mean") ,
+
+ggplot(Presults_hvl_df, aes(log2FoldChange.y, baseMean.y, label=gene_name)) +
+    geom_text_repel(data=filter( Presults_hvl_df, baseMean.x > 30), aes(col=padj.y)) +
+    geom_point(aes(col=padj.y)) + 
+    labs(title = "High vs Low KBS", x="Log 2 Fold Change", y="Base Mean"))
+
+
+```
+
+```{r PseudoGeneListRvK, echo=FALSE, results='hide'}
+
+#Get both RvK
+
+Presults_hRvhK_df <- data.frame( Presults_hRvhK, MLE=T )
+
+Presults_hRvhK_df$gene_name <- row.names( Presults_hRvhK )
+
+Presults_lRvlK_df <- data.frame( Presults_lRvlK, MLE=T )
+
+Presults_lRvlK_df$gene_name <- row.names( Presults_lRvlK )
+
+#Insert new columns and filter
+
+Presults_hRvhK_df <- filter(Presults_hRvhK_df, !is.na(log2FoldChange))
+Presults_lRvlK_df <- filter(Presults_lRvlK_df, !is.na(log2FoldChange))
+
+Presults_hRvhK_df$FC <- logratio2foldchange(Presults_hRvhK_df$log2FoldChange)
+Presults_lRvlK_df$FC <- logratio2foldchange(Presults_lRvlK_df$log2FoldChange)
+
+Presults_hRvhK_df$ABlog2FoldChange <- abs(Presults_hRvhK_df$log2FoldChange)
+Presults_lRvlK_df$ABlog2FoldChange <- abs(Presults_lRvlK_df$log2FoldChange)
+
+
+#Get intersection of hvl
+Presults_RvK_df <- inner_join(Presults_hRvhK_df, Presults_lRvlK_df, by=c("gene_name" = "gene_name"))
+
+Presults_RvK_df <- mutate(Presults_RvK_df, AB_BM_High=ABlog2FoldChange.x*baseMean.x, AB_BM_Low=ABlog2FoldChange.y*baseMean.y, diffL2FC=abs( ABlog2FoldChange.x - ABlog2FoldChange.y ) )
+
+write.csv( Presults_RvK_df, outputfilenamePseudoKvR, quote=FALSE, row.names=FALSE)
+
+plot_grid(
+ggplot(Presults_RvK_df, aes(log2FoldChange.x, baseMean.x, label=gene_name)) +
+    geom_text_repel(data=filter( Presults_RvK_df, baseMean.x > 30), aes(col=padj.x)) +
+    geom_point(aes(col=padj.y)) + 
+    labs(title = "Reed High vs KBS High", x="Log 2 Fold Change", y="Base Mean") ,
+
+ggplot(Presults_RvK_df, aes(log2FoldChange.y, baseMean.y, label=gene_name)) +
+    geom_text_repel(data=filter( Presults_hvl_df, baseMean.x > 30), aes(col=padj.y)) +
+    geom_point(aes(col=padj.y)) + 
+    labs(title = "Reed Low vs KBS Low", x="Log 2 Fold Change", y="Base Mean"))
+
+
+```
+
+
 ```{r IntGeneList, echo=FALSE, results='hide'}
 
 Intresults_hvl_df <- data.frame( Intresults_hvl )
@@ -563,7 +655,10 @@ abline(a=0, b=0 , col="blue")
 
 
 ```{r DisplayGenes, echo=FALSE}
-miniresults <- cbind( head(results_hvl_df[, c("gene_name", "log2FoldChange", "padj", "MLE")], 10), head(Intresults_hvl_df[, c("gene_name", "log2FoldChange", "padj")], 10))
+miniresults <- cbind( 
+  head(results_hvl_df[, c("gene_name", "log2FoldChange", "padj", "MLE")], 10), 
+  head(Intresults_hvl_df[, c("gene_name", "log2FoldChange", "padj")], 10),
+  head(Presults_hvl_df[, c("gene_name", "log2FoldChange", "padj")], 10))
 
 miniresults
 
@@ -571,15 +666,17 @@ miniresults
 
 ```
 
-Comparison of top 10 highest adjusted p-value genes from "No interaction" model (top) versus the interaction, but no shrinkage model (bottom). Only one of the top 10 genes, `r intersect(miniresults[,1], miniresults[,5])`, is in both lists.
+Comparison of top 10 highest adjusted p-value genes from "No interaction" model (top) versus the interaction, but no shrinkage model (bottom). Only one of the top 10 genes, `r intersect(miniresults[,1], miniresults[,5])`, are in all lists.
 
 
 ```{r CompareGeneLists, echo=FALSE}
-tempresults <- cbind( head(results_hvl_df[, c("gene_name", "log2FoldChange", "padj")], 100), head(Intresults_hvl_df[, c("gene_name", "log2FoldChange", "padj")], 100))
+tempresults <- cbind( head(results_hvl_df[, c("gene_name", "log2FoldChange", "padj")], 100), 
+               head(Intresults_hvl_df[, c("gene_name", "log2FoldChange", "padj")], 100), 
+               head(Presults_hvl_df[, c("gene_name", "log2FoldChange", "padj")], 100))
 
 ```
 
-In the top 100 highest adjusted p-value genes, there are just `r length(intersect( tempresults[,1], tempresults[,4]))` genes that appear in both:
+In the top 100 highest adjusted p-value genes, there are just `r length(intersect( tempresults[,1], tempresults[,4]))` genes that appear in all three:
 
 ```{r, echo=FALSE}
 intersect( tempresults[,1], tempresults[,4])
@@ -637,7 +734,7 @@ write.csv( deseq2_results_rvk_df, outputfilename, quote=FALSE, row.names=FALSE )
 
 #Upcoming analysis
 
-This data is all using the Kitashiba2014. I have two others to align to as well, however, this one is arguably the best of the three, so the others are unlikely to vastly improve the number of mapped reads. It's important to note that although Kitashiba2014 covers more of the actual genome and has a much better N50 than the others, it still has a ridiculous number of contigs. All of these genomes are so fragmented that even the 'best' one still isn't good.
+This data is all using the Mitsui2015. I have two others to align to as well, however, this one is arguably the best of the three, so the others are unlikely to vastly improve the number of mapped reads. It's important to note that although Kitashiba2014 covers more of the actual genome and has a much better N50 than the others, it still has a ridiculous number of contigs. All of these genomes are so fragmented that even the 'best' one still isn't good.
 
 ```{r Upcoming, echo=FALSE}
 Measure<- c("# contigs", "N50", "Assembled_length (Mb)","gene models")
