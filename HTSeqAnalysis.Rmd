@@ -185,8 +185,9 @@ raph.meta <- data.frame( description=c( "Sequencing Flowcell", "Sequencing Date"
 raph.est <- ExpressionSet( assayData=as.matrix(raph.exprs),
                            phenoData=new( "AnnotatedDataFrame",
                            data=raph.groups, varMetadata=raph.meta ))
+```
 
-
+```{r NoInteractionDESeq2, echo=FALSE, results='hide', include=FALSE}
 
 # Create DESeq2 datasets
 ## One with no interactions
@@ -199,13 +200,18 @@ raph.DES <- DESeq( raph.DES )
 #nc <- counts(raph.DES, normalized=TRUE)
 #filter <- rowSums(nc >= 10) >= 2
 #raph.DES <- raph.DES[filter,]
+```
 
+```{r PseudoInteractions DESeq2, echo=FALSE, results='hide', include=FALSE}
 ## One with pseudointeractions
 
 raphpseudo.DES <- DESeqDataSetFromMatrix(countData = exprs( raph.est ), colData = pData( raph.est ), design = ~ LocationLine + FlowCell )
 
 raphpseudo.DES <- DESeq( raphpseudo.DES )
 
+```
+
+```{r Interaction DESeq2, echo=FALSE, results='hide', include=FALSE}
 ## One with real interactions
 raphInt.DES <- DESeqDataSetFromMatrix(countData = exprs( raph.est ), colData = pData( raph.est ), design = ~ FlowCell + Line + Location:Line )
 
