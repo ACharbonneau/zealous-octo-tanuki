@@ -470,7 +470,7 @@ plotDispEsts( raphpseudo.DES )
 ####Log2 fold change
 Since this model doesn't have an interaction term, the log2 fold change estimates are shrunken, and we can compare the shrunken and unshrunken estimates. Here, as expected, the lowest estimates are pulled much closer to the midline of the graph for the shrunken values. However, the model doesn't seem to be over-shrinking, as there are still many signifigant (red) values, including some that fall outside the plot (triangles).
 
-```{r MAplots, echo=FALSE}
+```{r pseudoMAplots, echo=FALSE}
 plotMA( Presults_hvl, MLE=TRUE, main="unshrunken LFC", ylim=c(-3,3), alpha=p.threshold )
 
 plotMA( Presults_hvl, MLE=FALSE, main="Shrunken LFC", ylim=c(-3,3), alpha=p.threshold  )
