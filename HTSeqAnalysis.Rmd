@@ -462,24 +462,25 @@ Model:
 
 `~ FlowCell + LocationLine`  (no interaction term)
 
-This model found `r sum(Presults_hvl$padj < p.threshold, na.rm = TRUE)` differentially expressed genes with a p value < .05
 
 ####Summary Information from model and graph of dispersion shrinkage
+KBS high vs KBS low, then Reed high vs Reed low
 ```{r PseudoSummaryplots, echo=FALSE}
 #Summary of modeled values that meet the specified adjusted p-value cutoff
-summary( Presults_hvl, alpha=p.threshold)
+summary( Presults_hKvlK, alpha=p.threshold)
+summary( Presults_hRvlR, alpha=p.threshold)
     
 # Plot dispersion estimates
 plotDispEsts( raphpseudo.DES )
 ```
 
 ####Log2 fold change
-Since this model doesn't have an interaction term, the log2 fold change estimates are shrunken, and we can compare the shrunken and unshrunken estimates. Here, as expected, the lowest estimates are pulled much closer to the midline of the graph for the shrunken values. However, the model doesn't seem to be over-shrinking, as there are still many signifigant (red) values, including some that fall outside the plot (triangles).
+Since this model doesn't have an interaction term, the log2 fold change estimates are shrunken, and we can compare the shrunken and unshrunken estimates. These are just the results for KBS high vs KBS low.
 
 ```{r pseudoMAplots, echo=FALSE}
-plotMA( Presults_hvl, MLE=TRUE, main="unshrunken LFC", ylim=c(-3,3), alpha=p.threshold )
+plotMA( Presults_hKvlK, MLE=TRUE, main="unshrunken LFC", ylim=c(-3,3), alpha=p.threshold )
 
-plotMA( Presults_hvl, MLE=FALSE, main="Shrunken LFC", ylim=c(-3,3), alpha=p.threshold  )
+plotMA( Presults_hKvlK, MLE=FALSE, main="Shrunken LFC", ylim=c(-3,3), alpha=p.threshold  )
 
 ```
 
@@ -513,26 +514,33 @@ plotMA( Intresults_hvl, MLE=FALSE, main="Only available LFC", ylim=c(-3,3), alph
 ```
 
 ## Gene Lists
+
+All labeled genes have a basemean greater than 20, and a log2foldchange of greater than 2
+
+Differentially expressed genes from the no interaction model, high vs low.
+
 ```{r PlainGeneList, echo=FALSE, results='hide'}
 
 results_hvl_df <- data.frame( results_hvl, MLE=T )
   results_hvl_df$gene_name <- row.names( results_hvl )
 results_hvl_df$FC <- logratio2foldchange(results_hvl_df$log2FoldChange)
 
-results_hvl_df <- filter(results_hvl_df, !is.na(log2FoldChange))
+results_hvl_df <- filter(results_hvl_df, !is.na(padj))
 
 results_hvl_df$ABlog2FoldChange <- abs(results_hvl_df$log2FoldChange)
 
 write.csv( results_hvl_df, outputfilenamePlain, quote=FALSE, row.names=FALSE)
 
-ggplot(results_hvl_df, aes(ABlog2FoldChange, padj)) + geom_point(aes(col=log(baseMean)))
-
-ggplot(results_hvl_df, aes(log2FoldChange, padj)) + geom_point(aes(col=log(baseMean)))
-
-ggplot(results_hvl_df, aes(log2FoldChange, log10(baseMean))) + geom_point(aes(col=padj))
+ggplot(results_hvl_df, aes(log2FoldChange, baseMean, label=gene_name)) +
+    geom_text_repel(data=filter( results_hvl_df, baseMean > 20 & log2FoldChange > 2), aes(col=padj)) +
+    geom_point(aes(col=padj)) + 
+    labs(title = "High vs Low", x="Log 2 Fold Change", y="Base Mean") 
 
 
 ```
+
+Differentially expressed genes from the pseudo interaction model, for high vs low.
+
 
 ```{r PseudoGeneListHvL, echo=FALSE, results='hide'}
 
@@ -548,8 +556,8 @@ Presults_hKvlK_df$gene_name <- row.names( Presults_hKvlK )
 
 #Insert new columns and filter
 
-Presults_hRvlR_df <- filter(Presults_hRvlR_df, !is.na(log2FoldChange))
-Presults_hKvlK_df <- filter(Presults_hKvlK_df, !is.na(log2FoldChange))
+Presults_hRvlR_df <- filter(Presults_hRvlR_df, !is.na(padj))
+Presults_hKvlK_df <- filter(Presults_hKvlK_df, !is.na(padj))
 
 Presults_hRvlR_df$FC <- logratio2foldchange(Presults_hRvlR_df$log2FoldChange)
 Presults_hKvlK_df$FC <- logratio2foldchange(Presults_hKvlK_df$log2FoldChange)
@@ -563,21 +571,30 @@ Presults_hvl_df <- inner_join(Presults_hRvlR_df, Presults_hKvlK_df, by=c("gene_n
 
 Presults_hvl_df <- mutate(Presults_hvl_df, AB_BM_Reed=ABlog2FoldChange.x*baseMean.x, AB_BM_KBS=ABlog2FoldChange.y*baseMean.y, diffL2FC=abs( ABlog2FoldChange.x - ABlog2FoldChange.y ) )
 
+
 write.csv( Presults_hvl_df, outputfilenamePseudoHvL, quote=FALSE, row.names=FALSE)
 
-plot_grid(
-ggplot(Presults_hvl_df, aes(log2FoldChange.x, baseMean.x, label=gene_name)) +
-    geom_text_repel(data=filter( Presults_hvl_df, baseMean.x > 30), aes(col=padj.x)) +
-    geom_point(aes(col=padj.y)) + 
-    labs(title = "High vs Low Reed", x="Log 2 Fold Change", y="Base Mean") ,
 
-ggplot(Presults_hvl_df, aes(log2FoldChange.y, baseMean.y, label=gene_name)) +
-    geom_text_repel(data=filter( Presults_hvl_df, baseMean.x > 30), aes(col=padj.y)) +
-    geom_point(aes(col=padj.y)) + 
-    labs(title = "High vs Low KBS", x="Log 2 Fold Change", y="Base Mean"))
 
 
 ```
+
+```{r, echo=FALSE}
+ggplot(Presults_hvl_df, aes(log2FoldChange.x, baseMean.x, label=gene_name)) +
+    geom_text_repel(data=filter( Presults_hvl_df, baseMean.x > 20 & log2FoldChange.x > 2 ), aes(col=padj.x)) +
+    geom_point(aes(col=padj.x)) + 
+    labs(title = "High vs Low Reed", x="Log 2 Fold Change", y="Base Mean") 
+
+```
+
+```{r, echo=FALSE}
+ggplot(Presults_hvl_df, aes(log2FoldChange.y, baseMean.y, label=gene_name)) +
+    geom_text_repel(data=filter( Presults_hvl_df, baseMean.y > 20 & log2FoldChange.y > 2), aes(col=padj.y)) +
+    geom_point(aes(col=padj.y)) + 
+    labs(title = "High vs Low KBS", x="Log 2 Fold Change", y="Base Mean")
+
+```
+
 
 ```{r PseudoGeneListRvK, echo=FALSE, results='hide'}
 
@@ -610,20 +627,21 @@ Presults_RvK_df <- mutate(Presults_RvK_df, AB_BM_High=ABlog2FoldChange.x*baseMea
 
 write.csv( Presults_RvK_df, outputfilenamePseudoKvR, quote=FALSE, row.names=FALSE)
 
-plot_grid(
-ggplot(Presults_RvK_df, aes(log2FoldChange.x, baseMean.x, label=gene_name)) +
-    geom_text_repel(data=filter( Presults_RvK_df, baseMean.x > 30), aes(col=padj.x)) +
-    geom_point(aes(col=padj.y)) + 
-    labs(title = "Reed High vs KBS High", x="Log 2 Fold Change", y="Base Mean") ,
-
-ggplot(Presults_RvK_df, aes(log2FoldChange.y, baseMean.y, label=gene_name)) +
-    geom_text_repel(data=filter( Presults_hvl_df, baseMean.x > 30), aes(col=padj.y)) +
-    geom_point(aes(col=padj.y)) + 
-    labs(title = "Reed Low vs KBS Low", x="Log 2 Fold Change", y="Base Mean"))
+#plot_grid(
+#ggplot(Presults_RvK_df, aes(log2FoldChange.x, baseMean.x, label=gene_name)) +
+#    geom_text_repel(data=filter( Presults_RvK_df, baseMean.y > 4500 | abs(log2FoldChange.y) > 2.5 ), #aes(col=padj.x)) +
+#    geom_point(aes(col=padj.y)) + 
+#    labs(title = "Reed High vs KBS High", x="Log 2 Fold Change", y="Base Mean") ,
+#
+#ggplot(Presults_RvK_df, aes(log2FoldChange.y, baseMean.y, label=gene_name)) +
+#    geom_text_repel(data=filter( Presults_hvl_df, baseMean.x > 4500 | abs(log2FoldChange.x) > 2.5), #aes(col=padj.y)) +
+#    geom_point(aes(col=padj.y)) + 
+#    labs(title = "Reed Low vs KBS Low", x="Log 2 Fold Change", y="Base Mean"))
 
 
 ```
 
+Differentially expressed genes from the interaction model, high vs low.
 
 ```{r IntGeneList, echo=FALSE, results='hide'}
 
@@ -632,13 +650,18 @@ Intresults_hvl_df <- data.frame( Intresults_hvl )
   
 Intresults_hvl_df$FC <- logratio2foldchange(Intresults_hvl_df$log2FoldChange)
 
-Intresults_hvl_df <- filter(Intresults_hvl_df, !is.na(log2FoldChange))
+Intresults_hvl_df <- filter(Intresults_hvl_df, !is.na(padj))
 
 Intresults_hvl_df$ABlog2FoldChange <- abs(Intresults_hvl_df$log2FoldChange)
 
 write.csv( Intresults_hvl_df, outputfilenameInteraction, quote=FALSE, row.names=FALSE )
 
+ggplot(Intresults_hvl_df, aes(log2FoldChange, baseMean, label=gene_name)) +
+    geom_text_repel(data=filter( Intresults_hvl_df, baseMean > 20 & log2FoldChange > 2), aes(col=padj)) +
+    geom_point(aes(col=padj)) + 
+    labs(title = "Interaction: High vs Low", x="Log 2 Fold Change", y="Base Mean") 
 ```
+
 
 ```{r MeanExpressionPlots, eval=FALSE, echo=FALSE}
 par(mfrow=c(2,1))
@@ -659,43 +682,33 @@ with(results_hvl_df[results_hvl_df$padj <0.05, ],
 abline(a=0, b=0 , col="blue")
 ```
 
-
-```{r DisplayGenes, echo=FALSE}
-miniresults <- cbind( 
-  head(results_hvl_df[, c("gene_name", "log2FoldChange", "padj", "MLE")], 10), 
-  head(Intresults_hvl_df[, c("gene_name", "log2FoldChange", "padj")], 10),
-  head(Presults_hvl_df[, c("gene_name", "log2FoldChange", "padj")], 10))
-
-miniresults
-
-#intersect(miniresults[,1], miniresults[,5])
+Comparison of top 10 highest adjusted p-value genes from "No interaction" model:
+```{r, echo=FALSE}
+select(results_hvl_df, gene_name, log2FoldChange, padj) %>% arrange(padj) %>% head(n=10)
 
 ```
 
-Comparison of top 10 highest adjusted p-value genes from "No interaction" model (top) versus the interaction, but no shrinkage model (bottom). Only one of the top 10 genes, `r intersect(miniresults[,1], miniresults[,5])`, are in all lists.
-
-
-```{r CompareGeneLists, echo=FALSE}
-tempresults <- cbind( head(results_hvl_df[, c("gene_name", "log2FoldChange", "padj")], 100), 
-               head(Intresults_hvl_df[, c("gene_name", "log2FoldChange", "padj")], 100), 
-               head(Presults_hvl_df[, c("gene_name", "log2FoldChange", "padj")], 100))
-
-```
-
-In the top 100 highest adjusted p-value genes, there are just `r length(intersect( tempresults[,1], tempresults[,4]))` genes that appear in all three:
+pseudo interaction model:
 
 ```{r, echo=FALSE}
-intersect( tempresults[,1], tempresults[,4])
+
+select(Intresults_hvl_df, gene_name, log2FoldChange, padj) %>% arrange(padj) %>% head(n=10)
+
+```
+
+and interaction model: 
+
+```{r, echo=FALSE}
+
+select(Presults_hvl_df, gene_name, log2FoldChange.x, padj.x) %>% arrange(padj.x) %>% head( n=10 )
+
+
 ```
 
 
-
-So the models are giving very different gene sets, but it's not obvious which set is 'better'. Given the splay of log2 fold change values for the model with the interaction term, it is probably better to use the gene list from the model with shrinkage, and just accept that we may miss some genes that had strong interaction effects.
-
-Plotted below are normalized counts for the four most signifigantly different genes, Reed plants are red, KBS plants black.
-
+```{r TopPvalue, eval=FALSE, echo=FALSE}
 ####Example count plot, highly signifigant genes
-```{r TopPvalue, echo=FALSE}
+
 par(mfrow=c(2,2))
 
 for( names in row.names(results_hvl[order(results_hvl$padj),][1:4,])){
@@ -703,10 +716,9 @@ plotCounts(raph.DES, gene= names, intgroup="Line", col=raph.DES$Location)
 }
 ```
 
-Similarly, these are the counts for the four genes with the highest fold change.
 
+```{r TopFC, eval=FALSE, echo=FALSE}
 ####Example count plot, highly different genes
-```{r TopFC, echo=FALSE}
 
 par(mfrow=c(2,2))
 
@@ -715,7 +727,6 @@ plotCounts(raph.DES, gene= names, intgroup="Line", col=raph.DES$Location)
 }
 ```
 
-Based on these graphs, there does seem to be a large effect of location, however the lines don't show much evidence of opposing genetic effects. So, dropping the interaction may not adversly effect results.
 
 ```{r testing, eval=FALSE, echo=FALSE}
 
@@ -738,16 +749,16 @@ write.csv( deseq2_results_rvk_df, outputfilename, quote=FALSE, row.names=FALSE )
 
 ```
 
-#Upcoming analysis
+#Genome Comparisons
 
 This data is all using the Mitsui2015. I have two others to align to as well, however, this one is arguably the best of the three, so the others are unlikely to vastly improve the number of mapped reads. It's important to note that although Kitashiba2014 covers more of the actual genome and has a much better N50 than the others, it still has a ridiculous number of contigs. All of these genomes are so fragmented that even the 'best' one still isn't good.
 
 ```{r Upcoming, echo=FALSE}
-Measure<- c("# contigs", "N50", "Assembled_length (Mb)","gene models")
-Moghe2014 <- c(64732,10186,253,50974)
-Kitashiba2014 <- c(76592,46262,402,80521)
-Mitsui2015 <- c(72909,7120,384,64657)
-Jeong2016 <- c(38732,19600,371.6,46514)
+Measure<- c("# contigs", "N50", "Assembled_length (Mb)","gene models", "Annotations")
+Moghe2014 <- c(64732,10186,253,50974, "No")
+Kitashiba2014 <- c(76592,46262,402,80521, "No")
+Mitsui2015 <- c(72909,7120,384,64657, "Yes")
+Jeong2016 <- c(38732,19600,371.6,46514, "Yes")
 
 
 
