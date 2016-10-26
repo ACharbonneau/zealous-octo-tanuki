@@ -31,16 +31,12 @@ samtools index ${job}.sorted.bam
 
 ### Send transcriptome to samtools
 
-if [ "$gff" = "NA" ]
-
+if [[ "${gff}" = "NA" ]]
 then samtools idxstats ${job}.sorted.bam
-		
 fi
 
 
 ### Send genomes to HTseq
-if [ "$gff" != "NA" ]
-
+if [[ "${gff}" != "NA" ]]
 then qsub ../scripts/7_htseq.qsub -N ${bsname}.HTseq -v genome="${genome}",index="${index}",gff="${gff}",bsname="${bsname}",indiv="${indiv}",job="${job}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
-
 fi
