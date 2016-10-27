@@ -51,13 +51,19 @@ bowtie2 --local -p 2 -D 15 -R 2 -N 0 -L 20 -i S,1,0.75 -x ${index} -U ../${indiv
 #--sensitive            -D 15 -R 2 -N 0 -L 22 -i S,1,1.15 (default)
 
 
+folder=`pwd`
+folder=`basename $folder`
+
+
+if [ ! -f ${folder}.map-${PBS_ARRAYID}_*.fastq.edit.sam ]
+then qsub ../scripts/5_bt2_mapping.qsub -t ${PBS_ARRAYID} -N ${folder} -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}",job="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
+fi
 
 
 #Launch samtools
 #cd ${bsname}
 
-rc=$?
 
-if [[ $rc = 0 ]] 
+if [ ! ${folder}.map-${PBS_ARRAYID}_*.fastq.edit.sam ]
 then qsub ../scripts/6_view_samtools.qsub -N ${bsname}.samtools -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}",job="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
 fi

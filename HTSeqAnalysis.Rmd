@@ -519,7 +519,7 @@ All labeled genes have a basemean greater than 20, and a log2foldchange of great
 
 Differentially expressed genes from the no interaction model, high vs low.
 
-```{r PlainGeneList, echo=FALSE, results='hide'}
+```{r PlainGeneList, echo=FALSE, results='hide', fig.keep=last}
 
 results_hvl_df <- data.frame( results_hvl, MLE=T )
   results_hvl_df$gene_name <- row.names( results_hvl )
@@ -579,7 +579,7 @@ write.csv( Presults_hvl_df, outputfilenamePseudoHvL, quote=FALSE, row.names=FALS
 
 ```
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.path="../figures/", fig.keep="last", fig.width=11}
 ggplot(Presults_hvl_df, aes(log2FoldChange.x, baseMean.x, label=gene_name)) +
     geom_text_repel(data=filter( Presults_hvl_df, baseMean.x > 20 & log2FoldChange.x > 2 ), aes(col=padj.x)) +
     geom_point(aes(col=padj.x)) + 
@@ -587,7 +587,7 @@ ggplot(Presults_hvl_df, aes(log2FoldChange.x, baseMean.x, label=gene_name)) +
 
 ```
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.path="../figures/", fig.keep="last", fig.width=11}
 ggplot(Presults_hvl_df, aes(log2FoldChange.y, baseMean.y, label=gene_name)) +
     geom_text_repel(data=filter( Presults_hvl_df, baseMean.y > 20 & log2FoldChange.y > 2), aes(col=padj.y)) +
     geom_point(aes(col=padj.y)) + 
