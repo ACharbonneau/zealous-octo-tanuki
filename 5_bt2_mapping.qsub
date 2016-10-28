@@ -29,6 +29,7 @@ cd ${PBS_O_WORKDIR}/${bsname}
 module load bowtie2/2.2.6
 
 
+
 #Then launch metadata collector
 rc=$?
 
@@ -64,6 +65,6 @@ fi
 #cd ${bsname}
 
 
-if [ ! ${folder}.map-${PBS_ARRAYID}_*.fastq.edit.sam ]
+if [ ${folder}.map-${PBS_ARRAYID}_*.fastq.edit.sam ]
 then qsub ../scripts/6_view_samtools.qsub -N ${bsname}.samtools -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}",job="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
 fi

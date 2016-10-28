@@ -519,7 +519,7 @@ All labeled genes have a basemean greater than 20, and a log2foldchange of great
 
 Differentially expressed genes from the no interaction model, high vs low.
 
-```{r PlainGeneList, echo=FALSE, results='hide', fig.keep=last}
+```{r PlainGeneList, echo=FALSE, results='hide', fig.path="../figures/", fig.keep="last", fig.width=11}
 
 results_hvl_df <- data.frame( results_hvl, MLE=T )
   results_hvl_df$gene_name <- row.names( results_hvl )
