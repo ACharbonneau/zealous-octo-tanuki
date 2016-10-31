@@ -31,14 +31,18 @@ cd ${PBS_O_WORKDIR}/${bsname}
 
 echo bsname="${PBS_JOBNAME}"
 
+
+if [ ! -f ${PBS_JOBNAME}.sam ]
 gsnap -d ${index} --force-single-end ../${indiv} -k 15 -A sam -N 1 -O -n 1 -Q --nofails -o ${PBS_JOBNAME}.sam
+fi
+
 
 folder=`pwd`
 folder=`basename $folder`
 
 
-if [ ! -f ${folder}.map-${PBS_ARRAYID}_*.fastq.edit.sam ]
-then qsub ../scripts/5_gmap_mapping.qsub -t ${PBS_ARRAYID} -N ${folder} -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}",job="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
+if [ ! -f ${PBS_JOBNAME}.sam ]
+then qsub ../scripts/5_gmap_mapping.qsub -t ${PBS_ARRAYID} -N ${folder}.map -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}",job="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
 fi
 
 
@@ -47,6 +51,6 @@ fi
 
 
 
-if [ -f ${folder}.map-${PBS_ARRAYID}_*.fastq.edit.sam ] 
+if [ -f ${PBS_JOBNAME}.sam ] 
 then qsub ../scripts/6_view_samtools.qsub -N ${bsname}.samtools -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}",job="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
 fi
