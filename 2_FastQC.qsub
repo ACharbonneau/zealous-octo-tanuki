@@ -16,4 +16,4 @@ module load FastQC/0.11.3
 
 cd ${PBS_O_WORKDIR} || exit
 
-fastqc *.fastq -o fastqc/
+fastqc *.fastq.edit -o fastqc/
