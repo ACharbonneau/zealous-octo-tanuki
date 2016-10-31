@@ -1,6 +1,6 @@
 #!/bin/sh -login
 #PBS -j oe
-#PBS -l nodes=1:ppn=1,walltime=0:00:60,mem=10gb
+#PBS -l nodes=1:ppn=1,walltime=04:00:00,mem=10gb
 #PBS -m abe
 
 # -o : tells it where to put output from your job
@@ -16,6 +16,4 @@ module load FastQC/0.11.3
 
 cd ${PBS_O_WORKDIR} || exit
 
-for i in `ls *.fastq.edit`
-	do ${i} -o fastqc
-done
+fastqc *.fastq -o fastqc/
