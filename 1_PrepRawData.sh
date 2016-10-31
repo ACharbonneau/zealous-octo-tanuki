@@ -9,11 +9,11 @@ for i in `ls *.tar.gz`; do tar -zxvf ${i}; done
 #Rename to format: Cel_Date_Lane_PlantID.filetype
 
 echo "3. Rename files"
-sh /mnt/research/radishGenomics/AssembledSequencingFiles/AE_RNA_Assembly/scripts/RenameAE_rawfiles.sh
+sh scripts/RenameAE_rawfiles.sh
 
 echo "4. Convert fna to fastq"
 rm *_ID*
-for i in `ls *.fna`; do perl /mnt/research/radishGenomics/AssembledSequencingFiles/AE_RNA_Assembly/scripts/fastaQual2fastq.pl ${i}; done
+for i in `ls *.fna`; do perl scripts/fastaQual2fastq.pl ${i}; done
 for i in `ls *.fastq`; do cat ${i} | sed s/\!$// > ${i}.edit; echo ${i}; done
 
 echo "5. Clean up directory"
@@ -28,6 +28,6 @@ mkdir BowtieIndicies
 mkdir metadata
 cp /mnt/research/radishGenomics/OriginalSequencingFiles/2008_AE_RNAseq/cel6/SeqProductionSumm.xls metadata/SeqProductionSumm.xls
 
-qsub 2_FastQC.qsub
+qsub scripts/2_FastQC.qsub
 
 echo "Data Acquired"
