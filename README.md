@@ -1,7 +1,18 @@
 # zealous-octo-tanuki
 RNAseq Analysis of 2008 anther exertion line sequencing data
 
+TLDR; 
+
+1. Make a main directory
+2. Clone repo onto HPC
+2. Change hardcoded file paths in 3_LaunchBuild.sh, if necessary
+3. Run numbered scripts, in numerical order
+	- .sh and .qsub scripts should be run from the main directory
+	- .R and .Rmd scripts must be run from the script folder
+
 ##Files
+
+0_BUSCO.sh
 
 1_PrepRawData.sh
 
@@ -9,21 +20,35 @@ RNAseq Analysis of 2008 anther exertion line sequencing data
 
 3_LaunchBuild.sh
 
-4_bt2_build.qsub
+4_Reformat_TranscriptCounts.R
 
-5_bt2_mapping.qsub
+5_RunHTSeqAnalysis.R
 
-6_view_samtools.qsub
+6_MappingRates.R
 
-7_htseq.qsub
+bt2_build.qsub
+
+gmap_build.qsub
+
+bt2_mapping.qsub
+
+gmap_mapping.qsub
+
+view_samtools.qsub
+
+htseq.qsub
+
+BlastAnalysis.R
+
+BUSCO.qsub
 
 echo.qsub
-
-RenameAE_rawfiles.sh
 
 fastaQual2fastq.pl
 
 HTSeqAnalysis.Rmd
+
+RenameAE_rawfiles.sh
 
 
 ##File Functions:
@@ -55,41 +80,51 @@ Runs FastQC on all files.
 Calls: nothing
 
 ###3_LaunchBuild.sh
-Script that has code for auto-submitting the qsubs for 4_bt2_build.qsub with all the
-right options. As well as the genome and gff edits needed to make them work
+Script that has code for auto-submitting the qsubs for building the genome indices with the
+right options. Paths to all files required for processing up until the HTseq count step are 
+hard coded here and passed from qsub to qsub. This keeps walltime under 4 hours for most 
+tasks, but keeps the user from having to track files. I'm quite proud of it.
 
-Calls:
+The pipeline diverges so reads are mapped to 5 references, each with both BT2 and GSNAP/GMAP
 
-- 4_bt2_build.qsub
-
-###4_bt2_build.qsub
-Builds a Bowtie2 index for a genome, then spawns one mapping operation for every available
-fastq file. This qsub begins auto-submission of several others, so it needs to be submitted
+This file begins auto-submission of several others, so it needs to be submitted
 with variable lists for everything from building to counting reads with HT-seq. Example:
 
->qsub scripts/4_bt2_build.qsub -N <name> -v genome=genome,gff=gf,gffi="<id attribute>",type="<feature type>",strand="<yes/no/reverse>"
+>qsub scripts/bt2_build.qsub -N <name> -v genome=<genome>,gff=<gff>,gffi="<id attribute>",exon=,<exon attribute>,stranded="<yes/no/reverse>"
 
-name is a string that will be used for naming all folder & file output
+<name> is a string that will be used for naming the job (gets passed to name all folder & file output)
 
-genome is full path to genome file in uncompressed fasta format
+<genome> is full path to genome file in uncompressed fasta format
 
-gff is full path to gff file, compressed or uncompressed
+<gff> is full path to gff file, compressed or uncompressed
 
-gffi is a quoted string of the GFF attribute to be used as feature ID
+<gffi> is a quoted string of the GFF attribute to be used as feature ID
 
-type is a quoted string of the feature type (3rd column in GFF file) to be used
+<exon> is a quoted string of the feature type (3rd column in GFF file) to be used
 
-strand is a quoted string of whether the data is from a strand-specific assay
+<strand> is a quoted string of whether the data is from a strand-specific assay
 
 NOTE: Spaces *matter*!
 
 Calls:
 
-- 5_bt2_mapping.qsub
+- bt2_build.qsub
+- gmap_build.qsub
 
-###5_bt2_mapping.qsub
+###bt2_build.qsub and gmap_build.qsub
+Build indicies for each reference, then spawns one mapping operation for every available
+fastq file. 
+Calls:
 
-Maps reads for one individual to one genome using Bowtie2
+- bt2_mapping.qsub
+
+OR
+
+- gmap_mapping.qsub
+
+###bt2_mapping.qsub and gmap_mapping.qsub
+
+Maps reads for one individual to one reference using Bowtie2 or GMAP
 
 Calls:
 
@@ -98,20 +133,50 @@ Calls:
 		A series of echo commands that write out the program versions and files used for
 		a given individual for mapping through counting
 
-- 6_view_samtools.qsub
+- view_samtools.qsub
 
-###6_view_samtools.qsub
-Converts a sam file to bam and removes low quality mappings
+###view_samtools.qsub
+Converts a sam file to bam and removes low quality mappings. In the case of transcriptomes,
+samtools also makes a count file, otherwise the bam is passed to HTseq for counting.
 
 Calls:
 
-- 7_htseq.qsub
+- htseq.qsub
 
-###7_htseq.qsub
+###htseq.qsub
 Counts reads from a single individual to a give genome
 
 Calls: nothing
 
+###4_Reformat_TranscriptCounts.R
+While reads mapped to a genome in this pipeline are counted by HTseq, reads mapped to the 
+transcriptome are just counted by samtools. This works because the transcriptome is unassembled.
+This script edits the samtools count file to be the same format as HTseq output, so they 
+can all be put into the same DEseq2 pipeline.
+
+Calls: nothing
+
+###5_MappingRate.sh
+Runs samtools to get statistics for mapping quality of each run
+
+Calls: nothing
+
+###6_RunHTSeqAnalysis.R
+This is a driver script for the DEseq2 pipeline Rmd script. It will generate output files 
+and pretty HTML summary documents for each mapping. This will alsooutput lists of 
+differentially expressed genes, in csv format.
+
+Calls:
+
+- HTSeqAnalysis.Rmd
+
 ###HTSeqAnalysis.Rmd
-Reads in all count files from mappings to a single genome, merges them into a single
-expression data set, and uses DESeq to do differential expression analysis.
+Reads in all count files from mappings to a single reference, merges them into a single
+expression data set, and uses DESeq to do differential expression analysis. Provides 
+several exploratory data analysis as well as DE gene lists
+
+###7_MappingRates.R
+Script that uses output from HTSeqAnalysis.Rmd and 5_MappingRate.sh to plot mapping rate
+differences among references and mappers
+
+
