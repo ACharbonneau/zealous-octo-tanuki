@@ -92,17 +92,17 @@ with variable lists for everything from building to counting reads with HT-seq. 
 
 >qsub scripts/bt2_build.qsub -N \<name\> -v genome=\<genome\>,gff=\<gff\>,gffi="\<id_attribute\>",exon=\<exon_attribute\>,stranded="\<yes/no/reverse\>"
 
-name is a string that will be used for naming the job (gets passed to name all folder & file output)
+**name** is a string that will be used for naming the job (gets passed to name all folder & file output)
 
-genome is full path to genome file in uncompressed fasta format
+**genome** is full path to genome file in uncompressed fasta format
 
-gff is full path to gff file, compressed or uncompressed
+**gff** is full path to gff file, compressed or uncompressed
 
-gffi is a quoted string of the GFF attribute to be used as feature ID
+**gffi** is a quoted string of the GFF attribute to be used as feature ID
 
-exon is a quoted string of the feature type (3rd column in GFF file) to be used
+**exon** is a quoted string of the feature type (3rd column in GFF file) to be used
 
-stranded is a quoted string of whether the data is from a strand-specific assay
+**stranded** is a quoted string of whether the data is from a strand-specific assay
 
 NOTE: Spaces *matter*!
 
