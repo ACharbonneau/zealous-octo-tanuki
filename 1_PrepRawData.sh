@@ -13,7 +13,7 @@ sh scripts/RenameAE_rawfiles.sh
 
 echo "4. Convert fna to fastq"
 rm *_ID*
-for i in `ls *.fna`; do perl scripts/fastaQual2fastq.pl ${i}; done
+for i in `ls *.fna`; do perl zealous-octo-tanuki/fastaQual2fastq.pl ${i}; done
 for i in `ls *.fastq`; do cat ${i} | sed s/\!$// > ${i}.edit; echo ${i}; done
 
 echo "5. Clean up directory"
@@ -28,6 +28,6 @@ mkdir BowtieIndicies
 mkdir metadata
 cp /mnt/research/radishGenomics/OriginalSequencingFiles/2008_AE_RNAseq/cel6/SeqProductionSumm.xls metadata/SeqProductionSumm.xls
 
-qsub scripts/2_FastQC.qsub
+qsub zealous-octo-tanuki/2_FastQC.qsub
 
 echo "Data Acquired"
