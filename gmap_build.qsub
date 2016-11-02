@@ -1,8 +1,8 @@
 #!/bin/sh -login
 #PBS -j oe
-#PBS -l nodes=1:ppn=1,walltime=42:00:00,mem=30gb
+#PBS -l nodes=1:ppn=1,walltime=02:00:00,mem=10gb
 #PBS -m a
-
+#PBS -l feature='intel16'
 
 # -o : tells it where to put output from your job
 # -j oe : specifies that output and error messages from your job can be placed in the same location
@@ -23,10 +23,18 @@ fi
 
 cd ${PBS_O_WORKDIR} || exit
 
-module load MUMmer/3.23
-module load Biopython/1.65
+
+mkdir ${PBS_JOBNAME} #make a folder for each genome you're mapping to
 
 
-java -jar medusa.jar -i Mitsui2015 -o ${PBS_JOBNAME}.fa -v
+source ~/.bash_profile
 
+#gmap_build -d ${PBS_JOBNAME} -k 15 ${genome}
 
+#Launch mapper
+rc=$?
+
+if [[ $rc = 0 ]] 
+then qsub scripts/gmap_mapping.qsub -N ${PBS_JOBNAME}.map -o ${PBS_JOBNAME}/ -v genome="${genome}",index="${PBS_JOBNAME}",gff="${gff}",bsname="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
+
+fi

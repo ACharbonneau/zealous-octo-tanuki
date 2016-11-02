@@ -57,7 +57,7 @@ folder=`basename $folder`
 
 
 if [ ! -f ${folder}.map-${PBS_ARRAYID}_*.fastq.edit.sam ]
-then qsub ../scripts/5_bt2_mapping.qsub -t ${PBS_ARRAYID} -N ${folder} -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}",job="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
+then qsub ../scripts/bt2_mapping.qsub -t ${PBS_ARRAYID} -N ${folder} -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}",job="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
 fi
 
 
@@ -66,5 +66,5 @@ fi
 
 
 if [ ${folder}.map-${PBS_ARRAYID}_*.fastq.edit.sam ]
-then qsub ../scripts/6_view_samtools.qsub -N ${bsname}.samtools -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}",job="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
+then qsub ../scripts/view_samtools.qsub -N ${bsname}.samtools -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}",job="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
 fi

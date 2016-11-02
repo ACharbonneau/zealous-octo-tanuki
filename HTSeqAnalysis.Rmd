@@ -12,85 +12,15 @@ output:
 
 #Global parameters for modeling
 
-```{r GlobalKitashiba, echo=FALSE, eval=FALSE}
-rm(list = ls())
+```{r GlobalVariables}
 
 #Setting a reasonable p-value threshold to be used throughout
 p.threshold <- 0.05
-
-countsDir <- file.path("../Kitashiba2014")
-outputfilenamePlain <- ("../DEseqOutput/Kitashiba2014_deseq2_expr_changes_HvL.csv")
-outputfilenameInteraction <- ("../DEseqOutput/Kitashiba2014_deseq2_expr_changes_Int_HvL.csv")
-outputfilenameCounts <- ("../DEseqOutput/Kitashiba2014_counts.csv")
-
-#For other genomes, also have to change gene number indexing on line 251 or the lda won't run
-
-#Reference level is Low
-```
-
-
-```{r GlobalMitsui2015}
-
-
-#Setting a reasonable p-value threshold to be used throughout
-p.threshold <- 0.05
-
-countsDir <- file.path("../Mitsui2015")
-outputfilenamePlain <- ("../DEseqOutput/Mitsui2015_deseq2_expr_changes_HvL.csv")
-outputfilenamePseudoHvL <- ("../DEseqOutput/Mitsui2015_deseq2_expr_changes_HvL.csv")
-outputfilenamePseudoKvR <- ("../DEseqOutput/Mitsui2015_deseq2_expr_changes_KvR.csv")
-outputfilenameInteraction <- ("../DEseqOutput/Mitsui2015_deseq2_expr_changes_Int_HvL.csv")
-outputfilenameCounts <- ("../DEseqOutput/Mitsui2015_counts.csv")
-#Reference level is Low
-```
-
-
-```{r GlobalJeong2016, echo=FALSE, eval=FALSE}
-
-
-#Setting a reasonable p-value threshold to be used throughout
-p.threshold <- 0.05
-
-countsDir <- file.path("../Jeong2016")
-outputfilenamePlain <- ("../DEseqOutput/Jeong2016_deseq2_expr_changes_HvL.csv")
-outputfilenameInteraction <- ("../DEseqOutput/Jeong2016_deseq2_expr_changes_Int_HvL.csv")
-outputfilenameCounts <- ("../DEseqOutput/Jeong2016_counts.csv")
-
-#Reference level is Low
-```
-
-
-
-```{r GlobalMoghe2014, echo=FALSE, eval=FALSE}
-
-
-#Setting a reasonable p-value threshold to be used throughout
-p.threshold <- 0.05
-
-countsDir <- file.path("../Moghe2014")
-outputfilenamePlain <- ("../DEseqOutput/Moghe2014_deseq2_expr_changes_HvL.csv")
-outputfilenameInteraction <- ("../DEseqOutput/Moghe2014_deseq2_expr_changes_Int_HvL.csv")
-outputfilenameCounts <- ("../DEseqOutput/Moghe2014_counts.csv")
 
 
 #Reference level is Low
 ```
 
-
-```{r GlobalTranscriptome, echo=FALSE, eval=FALSE}
-
-
-#Setting a reasonable p-value threshold to be used throughout
-p.threshold <- 0.05
-
-countsDir <- file.path("../")
-outputfilenamePlain <- ("../DEseqOutput/Moghe2014_deseq2_expr_changes_HvL.csv")
-outputfilenameInteraction <- ("../DEseqOutput/Moghe2014_deseq2_expr_changes_Int_HvL.csv")
-outputfilenameCounts <- ("../DEseqOutput/Moghe2014_counts.csv")
-
-
-#Reference level is Low
-```
 
 ```{r LoadPackages, echo=FALSE, results='hide', include=FALSE}
 
@@ -113,7 +43,9 @@ sessionInfo()
 
 #Import all of the count files from mapping AE reads to a single genome
 
-ALLTHEFILES <- list.files(countsDir, pattern = "*.counts.txt")
+subgroup <- Inputfiles[ Inputfiles$Dataname == Mapping, ]
+
+ALLTHEFILES <- list.files(file.path(subgroup$countsDir), pattern = "*.counts.txt")
 
 meta <- read.csv("../metadata/metadata.csv")
 
@@ -129,7 +61,8 @@ File_Num <- length(ALLTHEFILES)
 
 
 # Make first dataset into starting dataframe
-ALLTHEGENES <- read.csv(paste(countsDir, "/", ALLTHEFILES[ 1 ], sep=""), sep = "\t", header = F, 
+ALLTHEGENES <- read.csv(paste(subgroup$countsDir, "/", ALLTHEFILES[ 1 ], sep=""), 
+                        sep = "\t", header = F, 
                         col.names = c("Genes", regmatches(ALLTHEFILES[ 1 ], regexec("[1-6]_2008[0-9]+_[0-9]_[A-Z]+[0-9]", ALLTHEFILES[ 1 ]))))
 
 # Remove X from name of column 2
@@ -143,25 +76,38 @@ for( X in c( 2:File_Num )){ #start at 2 because first dataset already in
 
   File_Search <- regexec("[1-6]_2008[0-9]+_[0-9]_[A-Z]+[0-9]", ALLTHEFILES[ X ])
   File_Name <- regmatches(ALLTHEFILES[ X ], File_Search)
-  Temp_File <- read.csv(paste(countsDir, "/", ALLTHEFILES[ X ], sep=""), sep = "\t", header = F)
+  Temp_File <- read.csv(paste(subgroup$countsDir, "/", ALLTHEFILES[ X ], sep=""), sep = "\t", header = F)
   colnames(Temp_File) <- c("Genes", File_Name)
   ALLTHEGENES <- inner_join( ALLTHEGENES, Temp_File )
   
 }
 
-no_feature <- as.data.frame(ALLTHEGENES[ length( rownames( ALLTHEGENES )) - 4,])
+no_feature <- colSums(dplyr::filter(ALLTHEGENES, Genes == "__no_feature" |
+                               Genes == "__ambiguous" |
+                               Genes == "__too_low_aQual" |
+                               Genes == "__not_aligned" |
+                               Genes == "__alignment_not_unique" )[,-1]) 
 
-Gene_Num <- length( rownames( ALLTHEGENES )) -5
 
-ALLTHEGENES <- ALLTHEGENES[ 1:Gene_Num,  ]
+ALLTHEGENES <- dplyr::filter(ALLTHEGENES, Genes != "__no_feature" |
+                               Genes != "__ambiguous" |
+                               Genes != "__too_low_aQual" |
+                               Genes != "__not_aligned" |
+                               Genes != "__alignment_not_unique" )
+
 
 row.names(ALLTHEGENES) <- ALLTHEGENES[,1]
 
-count <- as.data.frame(colSums(ALLTHEGENES[2:(File_Num+1)]))
+genecounts <- as.data.frame(colSums(ALLTHEGENES[2:(File_Num+1)]))
+colnames(genecounts) <- "MappedReads"
 
-counts <- cbind(count, t(no_feature)[2:36])
+if ( sum(no_feature) != 0 ) { 
+genecounts <- cbind(genecounts, t(no_feature)[2:36])
+colnames(genecounts) <- c("MappedReads", "UnmappedReads")
+}
 
-write.csv(counts, outputfilenameCounts)
+
+write.csv(genecounts, paste(subgroup$outputfilenameCounts))
 
 ```
 
@@ -170,9 +116,9 @@ write.csv(counts, outputfilenameCounts)
 
 # DESeq2 uses the `expressionset` data format, so the data needs to be reformatted to fit:
 
-raph.exprs <-  select(ALLTHEGENES, contains("2008"))
+raph.exprs <-  dplyr::select(ALLTHEGENES, contains("2008"))
 
-raph.groups <- select(meta, FlowCell, Date, SampleInFC, ExID, Location, Line, SampleInLine)
+raph.groups <- dplyr::select(meta, FlowCell, Date, SampleInFC, ExID, Location, Line, SampleInLine)
 
 raph.groups$FlowCell <- factor(raph.groups$FlowCell)
 
@@ -280,7 +226,7 @@ In all the following heatmaps, samples/genes are clustered by Euclidian distance
 
 A heatmap of expression levels for all genes in all individuals shows that the overall expression is very similar across individuals
 
-```{r PlainLineHeatmap, echo=FALSE, fig.path="../figures/", fig.keep="last", fig.width=11}
+```{r PlainLineHeatmap, echo=FALSE, fig.path=paste("../figures/",subgroup$Dataname,"/", sep=""), fig.keep="last", fig.width=11}
 select_all <- order(rowMeans(counts(raph.DES,normalized=TRUE)),decreasing=TRUE)
 
 df <- as.data.frame(colData(raph.DES)[,c("Line","Location")])
@@ -297,7 +243,7 @@ Heatmap of modeled expression levels of 500 most highly expressed genes in all i
 This unclustered graph shows that there are differences in expression among the more highly expressed genes, although there are no obvious broad patterns between High vs Low or Reed vs KBS.
 
 
-```{r MiniPlainLineHeatmap, echo=FALSE, fig.path="../figures/", fig.keep="last", fig.width=11}
+```{r MiniPlainLineHeatmap, echo=FALSE, fig.path=paste("../figures/",subgroup$Dataname,"/", sep=""), fig.keep="last", fig.width=11}
 
 select500 <- order(rowMeans(counts(raph.DES,normalized=TRUE)),decreasing=TRUE)[1:500]
 
@@ -309,7 +255,7 @@ pheatmap(assay(vsd)[select500,], cluster_rows=F, show_rownames=F, cluster_cols=F
 
 Clustering that same heatmap does show some structure, however read counts seem to be much more correlated with Location than with Line. In particular, the upper left corner with a tight cluster of down-regulated genes is four plants from Reed, but has both phenotypes. We'll have to factor out Location in the model.
 
-```{r MiniPlainClusterLineHeatmap, echo=FALSE, fig.path="../figures/", fig.keep="last", fig.width=11}
+```{r MiniPlainClusterLineHeatmap, echo=FALSE, fig.path=paste("../figures/",subgroup$Dataname,"/", sep=""), fig.keep="last", fig.width=11}
 
 pheatmap(assay(vsd)[select500,], cluster_rows=T, show_rownames=FALSE, cluster_cols=T, annotation_col=df, clustering_distance_rows="euclidean", clustering_distance_cols="euclidean")
 
@@ -319,7 +265,7 @@ pheatmap(assay(vsd)[select500,], cluster_rows=T, show_rownames=FALSE, cluster_co
 
 Adding FlowCell to the clustered heatmap has very little effect, i.e. there doesn't appear to be a lot of systematic expression level difference due to sequencing run. We could probably get away without FlowCell in the model if we need to lose parameters.
 
-```{r MiniPlainClusterLineHeatmapFC, echo=FALSE, fig.path="../figures/", fig.keep="last", fig.width=11}
+```{r MiniPlainClusterLineHeatmapFC, echo=FALSE, fig.path=paste("../figures/",subgroup$Dataname,"/", sep=""), fig.keep="last", fig.width=11}
 
 dfFC <- as.data.frame(colData(raph.DES)[,c("Line","Location", "FlowCell")])
 
@@ -332,7 +278,7 @@ pheatmap(assay(vsd)[select500,], cluster_rows=T, show_rownames=FALSE, cluster_co
 
 This sample heatmap echos the gene heatmaps in that there is little Low vs High structure to cluster out individuals by, and a relatively large effect of location.  This map is clustered, and although the clusters are not very strong, Reed and KBS clearly seperate.
 
-```{r PlainSampleHeatmap, echo=FALSE, fig.path="../figures/", fig.keep="last", fig.width=11}
+```{r PlainSampleHeatmap, echo=FALSE, fig.path=paste("../figures/",subgroup$Dataname,"/", sep=""), fig.keep="last", fig.width=11}
 
 sampleDists <- dist(t(assay(vsd)))
 sampleDistMatrix <- as.matrix(sampleDists)
@@ -352,7 +298,7 @@ pheatmap(sampleDistMatrix,
 
 First two components of a PCA of the same normalized distance matrix used in the previous heatmap. These two vectors capture nearly 40% of the variance, but this seems to be mostly capturing Reed/KBS. 
 
-```{r plainPCA, echo=FALSE, fig.path="../figures/", fig.keep="last", fig.width=11}
+```{r plainPCA, echo=FALSE, fig.path=paste("../figures/",subgroup$Dataname,"/", sep=""), fig.keep="last", fig.width=11}
 vsd_df <- as.data.frame(assay(vsd)[select_all,])
 
 
@@ -392,7 +338,7 @@ str(vsd_lda_m)
 
 ```
 
-```{r Plotlda, echo=FALSE, eval=FALSE, fig.path="../figures/", fig.keep="last", fig.width=11}
+```{r Plotlda, echo=FALSE, eval=FALSE, fig.path=paste("../figures/",subgroup$Dataname,"/", sep=""), fig.keep="last", fig.width=11}
 plot(vsd_lda_m)
 ```
 
@@ -519,7 +465,7 @@ All labeled genes have a basemean greater than 20, and a log2foldchange of great
 
 Differentially expressed genes from the no interaction model, high vs low.
 
-```{r PlainGeneList, echo=FALSE, results='hide', fig.path="../figures/", fig.keep="last", fig.width=11}
+```{r PlainGeneList, echo=FALSE, results='hide', fig.path=paste("../figures/",subgroup$Dataname,"/", sep=""), fig.keep="last", fig.width=11}
 
 results_hvl_df <- data.frame( results_hvl, MLE=T )
   results_hvl_df$gene_name <- row.names( results_hvl )
@@ -529,7 +475,7 @@ results_hvl_df <- filter(results_hvl_df, !is.na(padj))
 
 results_hvl_df$ABlog2FoldChange <- abs(results_hvl_df$log2FoldChange)
 
-write.csv( results_hvl_df, outputfilenamePlain, quote=FALSE, row.names=FALSE)
+write.csv( results_hvl_df, paste(subgroup$outputfilenamePlain), quote=FALSE, row.names=FALSE)
 
 ggplot(results_hvl_df, aes(log2FoldChange, baseMean, label=gene_name)) +
     geom_text_repel(data=filter( results_hvl_df, baseMean > 20 & log2FoldChange > 2), aes(col=padj)) +
@@ -572,14 +518,14 @@ Presults_hvl_df <- inner_join(Presults_hRvlR_df, Presults_hKvlK_df, by=c("gene_n
 Presults_hvl_df <- mutate(Presults_hvl_df, AB_BM_Reed=ABlog2FoldChange.x*baseMean.x, AB_BM_KBS=ABlog2FoldChange.y*baseMean.y, diffL2FC=abs( ABlog2FoldChange.x - ABlog2FoldChange.y ) )
 
 
-write.csv( Presults_hvl_df, outputfilenamePseudoHvL, quote=FALSE, row.names=FALSE)
+write.csv( Presults_hvl_df, paste(subgroup$outputfilenamePseudoHvL), quote=FALSE, row.names=FALSE)
 
 
 
 
 ```
 
-```{r, echo=FALSE, fig.path="../figures/", fig.keep="last", fig.width=11}
+```{r, echo=FALSE, fig.path=paste("../figures/",subgroup$Dataname,"/", sep=""), fig.keep="last", fig.width=11}
 ggplot(Presults_hvl_df, aes(log2FoldChange.x, baseMean.x, label=gene_name)) +
     geom_text_repel(data=filter( Presults_hvl_df, baseMean.x > 20 & log2FoldChange.x > 2 ), aes(col=padj.x)) +
     geom_point(aes(col=padj.x)) + 
@@ -587,7 +533,7 @@ ggplot(Presults_hvl_df, aes(log2FoldChange.x, baseMean.x, label=gene_name)) +
 
 ```
 
-```{r, echo=FALSE, fig.path="../figures/", fig.keep="last", fig.width=11}
+```{r, echo=FALSE, fig.path=paste("../figures/",subgroup$Dataname,"/", sep=""), fig.keep="last", fig.width=11}
 ggplot(Presults_hvl_df, aes(log2FoldChange.y, baseMean.y, label=gene_name)) +
     geom_text_repel(data=filter( Presults_hvl_df, baseMean.y > 20 & log2FoldChange.y > 2), aes(col=padj.y)) +
     geom_point(aes(col=padj.y)) + 
@@ -625,7 +571,7 @@ Presults_RvK_df <- inner_join(Presults_hRvhK_df, Presults_lRvlK_df, by=c("gene_n
 
 Presults_RvK_df <- mutate(Presults_RvK_df, AB_BM_High=ABlog2FoldChange.x*baseMean.x, AB_BM_Low=ABlog2FoldChange.y*baseMean.y, diffL2FC=abs( ABlog2FoldChange.x - ABlog2FoldChange.y ) )
 
-write.csv( Presults_RvK_df, outputfilenamePseudoKvR, quote=FALSE, row.names=FALSE)
+write.csv( Presults_RvK_df, paste(subgroup$outputfilenamePseudoKvR), quote=FALSE, row.names=FALSE)
 
 #plot_grid(
 #ggplot(Presults_RvK_df, aes(log2FoldChange.x, baseMean.x, label=gene_name)) +
@@ -654,7 +600,7 @@ Intresults_hvl_df <- filter(Intresults_hvl_df, !is.na(padj))
 
 Intresults_hvl_df$ABlog2FoldChange <- abs(Intresults_hvl_df$log2FoldChange)
 
-write.csv( Intresults_hvl_df, outputfilenameInteraction, quote=FALSE, row.names=FALSE )
+write.csv( Intresults_hvl_df, paste(subgroup$outputfilenameInteraction), quote=FALSE, row.names=FALSE )
 
 ggplot(Intresults_hvl_df, aes(log2FoldChange, baseMean, label=gene_name)) +
     geom_text_repel(data=filter( Intresults_hvl_df, baseMean > 20 & log2FoldChange > 2), aes(col=padj)) +
@@ -684,7 +630,7 @@ abline(a=0, b=0 , col="blue")
 
 Comparison of top 10 highest adjusted p-value genes from "No interaction" model:
 ```{r, echo=FALSE}
-select(results_hvl_df, gene_name, log2FoldChange, padj) %>% arrange(padj) %>% head(n=10)
+dplyr::select(results_hvl_df, gene_name, log2FoldChange, padj) %>% arrange(padj) %>% head(n=10)
 
 ```
 
@@ -692,7 +638,7 @@ pseudo interaction model:
 
 ```{r, echo=FALSE}
 
-select(Intresults_hvl_df, gene_name, log2FoldChange, padj) %>% arrange(padj) %>% head(n=10)
+dplyr::select(Intresults_hvl_df, gene_name, log2FoldChange, padj) %>% arrange(padj) %>% head(n=10)
 
 ```
 
@@ -700,7 +646,7 @@ and interaction model:
 
 ```{r, echo=FALSE}
 
-select(Presults_hvl_df, gene_name, log2FoldChange.x, padj.x) %>% arrange(padj.x) %>% head( n=10 )
+dplyr::select(Presults_hvl_df, gene_name, log2FoldChange.x, padj.x) %>% arrange(padj.x) %>% head( n=10 )
 
 
 ```
@@ -745,13 +691,13 @@ deseq2_results_rvk_df <- filter(deseq2_results_rvk_df, !is.na(log2FoldChange))
 
 deseq2_results_rvk_df$ABlog2FoldChange <- abs(deseq2_results_rvk_df$log2FoldChange)
 
-write.csv( deseq2_results_rvk_df, outputfilename, quote=FALSE, row.names=FALSE )
+write.csv( deseq2_results_rvk_df, paste(subgroup$outputfilename), quote=FALSE, row.names=FALSE )
 
 ```
 
 #Genome Comparisons
 
-This data is all using the Mitsui2015. I have two others to align to as well, however, this one is arguably the best of the three, so the others are unlikely to vastly improve the number of mapped reads. It's important to note that although Kitashiba2014 covers more of the actual genome and has a much better N50 than the others, it still has a ridiculous number of contigs. All of these genomes are so fragmented that even the 'best' one still isn't good.
+It's important to note that although Kitashiba2014 covers more of the actual genome and has a much better N50 than the others, it still has a ridiculous number of contigs. All of these genomes are so fragmented that even the 'best' one still isn't good.
 
 ```{r Upcoming, echo=FALSE}
 Measure<- c("# contigs", "N50", "Assembled_length (Mb)","gene models", "Annotations")
