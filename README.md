@@ -5,7 +5,7 @@ TLDR;
 
 1. Make a main directory
 2. Clone repo onto HPC
-2. Change hardcoded file paths in 3_LaunchBuild.sh, if necessary
+2. Change hardcoded file paths in 1_PrepRawData.sh and 3_LaunchBuild.sh, if necessary
 3. Run numbered scripts, in numerical order
 	- .sh and .qsub scripts should be run from the main directory
 	- .R and .Rmd scripts must be run from the script folder
