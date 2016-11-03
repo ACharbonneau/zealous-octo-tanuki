@@ -20,11 +20,9 @@ TLDR;
 
 3_LaunchBuild.sh
 
-4_Reformat_TranscriptCounts.R
+4_RunHTSeqAnalysis.R
 
-5_RunHTSeqAnalysis.R
-
-6_MappingRates.R
+5_MappingRates.R
 
 bt2_build.qsub
 
@@ -142,13 +140,14 @@ samtools also makes a count file, otherwise the bam is passed to HTseq for count
 Calls:
 
 - htseq.qsub
+- Reformat_TranscriptCounts.R
 
 ###htseq.qsub
 Counts reads from a single individual to a give genome
 
 Calls: nothing
 
-###4_Reformat_TranscriptCounts.R
+###Reformat_TranscriptCounts.R
 While reads mapped to a genome in this pipeline are counted by HTseq, reads mapped to the 
 transcriptome are just counted by samtools. This works because the transcriptome is unassembled.
 This script edits the samtools count file to be the same format as HTseq output, so they 
