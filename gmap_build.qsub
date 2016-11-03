@@ -35,6 +35,6 @@ source ~/.bash_profile
 rc=$?
 
 if [[ $rc = 0 ]] 
-then qsub scripts/gmap_mapping.qsub -N ${PBS_JOBNAME}.map -o ${PBS_JOBNAME}/ -v genome="${genome}",index="${PBS_JOBNAME}",gff="${gff}",bsname="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
+then qsub zealous-octo-tanuki/gmap_mapping.qsub -N ${PBS_JOBNAME}.map -o ${PBS_JOBNAME}/ -v genome="${genome}",index="${PBS_JOBNAME}",gff="${gff}",bsname="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
 
 fi

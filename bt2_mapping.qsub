@@ -34,7 +34,7 @@ module load bowtie2/2.2.6
 rc=$?
 
 if [[ $rc = 0 ]] 
-then qsub ../scripts/echo.qsub -N ${PBS_JOBNAME}.metadata -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}"
+then qsub ../zealous-octo-tanuki/echo.qsub -N ${PBS_JOBNAME}.metadata -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}"
 fi 
 #Run bowtie2
 
@@ -57,7 +57,7 @@ folder=`basename $folder`
 
 
 if [ ! -f ${folder}.map-${PBS_ARRAYID}_*.fastq.edit.sam ]
-then qsub ../scripts/bt2_mapping.qsub -t ${PBS_ARRAYID} -N ${folder} -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}",job="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
+then qsub ../zealous-octo-tanuki/bt2_mapping.qsub -t ${PBS_ARRAYID} -N ${folder} -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}",job="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
 fi
 
 
@@ -66,5 +66,5 @@ fi
 
 
 if [ -f ${folder}.map-${PBS_ARRAYID}_*.fastq.edit.sam ]
-then qsub ../scripts/view_samtools.qsub -N ${bsname}.samtools -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}",job="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
+then qsub ../zealous-octo-tanuki/view_samtools.qsub -N ${bsname}.samtools -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}",job="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
 fi

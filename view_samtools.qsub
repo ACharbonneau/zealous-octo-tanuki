@@ -39,5 +39,5 @@ fi
 
 ### Send genomes to HTseq
 if [[ "${gff}" != "NA" ]]
-then qsub ../scripts/htseq.qsub -N ${bsname}.HTseq -v genome="${genome}",index="${index}",gff="${gff}",bsname="${bsname}",indiv="${indiv}",job="${job}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
+then qsub ../zealous-octo-tanuki/htseq.qsub -N ${bsname}.HTseq -v genome="${genome}",index="${index}",gff="${gff}",bsname="${bsname}",indiv="${indiv}",job="${job}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
 fi

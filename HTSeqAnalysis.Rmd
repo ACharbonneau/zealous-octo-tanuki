@@ -89,10 +89,10 @@ no_feature <- colSums(dplyr::filter(ALLTHEGENES, Genes == "__no_feature" |
                                Genes == "__alignment_not_unique" )[,-1]) 
 
 
-ALLTHEGENES <- dplyr::filter(ALLTHEGENES, Genes != "__no_feature" |
-                               Genes != "__ambiguous" |
-                               Genes != "__too_low_aQual" |
-                               Genes != "__not_aligned" |
+ALLTHEGENES <- dplyr::filter(ALLTHEGENES, Genes != "__no_feature" &
+                               Genes != "__ambiguous" &
+                               Genes != "__too_low_aQual" &
+                               Genes != "__not_aligned" &
                                Genes != "__alignment_not_unique" )
 
 
@@ -102,7 +102,7 @@ genecounts <- as.data.frame(colSums(ALLTHEGENES[2:(File_Num+1)]))
 colnames(genecounts) <- "MappedReads"
 
 if ( sum(no_feature) != 0 ) { 
-genecounts <- cbind(genecounts, t(no_feature)[2:36])
+genecounts <- cbind(genecounts, t(no_feature)[1:35])
 colnames(genecounts) <- c("MappedReads", "UnmappedReads")
 }
 
@@ -525,7 +525,7 @@ write.csv( Presults_hvl_df, paste(subgroup$outputfilenamePseudoHvL), quote=FALSE
 
 ```
 
-```{r, echo=FALSE, fig.path=paste("../figures/",subgroup$Dataname,"/", sep=""), fig.keep="last", fig.width=11}
+```{r HighvLowReed, echo=FALSE, fig.path=paste("../figures/",subgroup$Dataname,"/", sep=""), fig.keep="last", fig.width=11}
 ggplot(Presults_hvl_df, aes(log2FoldChange.x, baseMean.x, label=gene_name)) +
     geom_text_repel(data=filter( Presults_hvl_df, baseMean.x > 20 & log2FoldChange.x > 2 ), aes(col=padj.x)) +
     geom_point(aes(col=padj.x)) + 
@@ -533,7 +533,7 @@ ggplot(Presults_hvl_df, aes(log2FoldChange.x, baseMean.x, label=gene_name)) +
 
 ```
 
-```{r, echo=FALSE, fig.path=paste("../figures/",subgroup$Dataname,"/", sep=""), fig.keep="last", fig.width=11}
+```{r HighvLowKBS, echo=FALSE, fig.path=paste("../figures/",subgroup$Dataname,"/", sep=""), fig.keep="last", fig.width=11}
 ggplot(Presults_hvl_df, aes(log2FoldChange.y, baseMean.y, label=gene_name)) +
     geom_text_repel(data=filter( Presults_hvl_df, baseMean.y > 20 & log2FoldChange.y > 2), aes(col=padj.y)) +
     geom_point(aes(col=padj.y)) + 

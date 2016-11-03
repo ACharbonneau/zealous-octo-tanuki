@@ -48,3 +48,20 @@ qsub zealous-octo-tanuki/gmap_build.qsub -N Moghe2014_GS -v genome=/mnt/research
 qsub zealous-octo-tanuki/bt2_build.qsub -N RR3_NY_EST_BT -v genome=/mnt/research/radishGenomics/AnalysisOfSequencingFiles/EST_7pops/RR3_NY/1000017.est,gff=NA,gffi="NA",exon="NA",stranded="NA"
 qsub zealous-octo-tanuki/gmap_build.qsub -N RR3_NY_EST_GS -v genome=/mnt/research/radishGenomics/AnalysisOfSequencingFiles/EST_7pops/RR3_NY/1000017.est,gff=NA,gffi="NA",exon="NA",stranded="NA"
 
+#Brassica oleracea UNIGENES, unique. ftp://ftp.ncbi.nih.gov/repository/UniGene/
+#Tack thinks this is the best thing to map to
+
+awk '/^>/ {printf("\n%s\n",$0);next; } { printf("%s",$0);}  END {printf("\n");}' < /mnt/research/radishGenomics/PublicData/brassica_oleracea/Bol.seq.uniq > /mnt/research/radishGenomics/PublicData/brassica_oleracea/Edit_Bol.seq.uniq
+
+qsub zealous-octo-tanuki/bt2_build.qsub -N BO_UNI_BT -v genome=/mnt/research/radishGenomics/PublicData/brassica_oleracea/Edit_Bol.seq.uniq,gff=NA,gffi="NA",exon="NA",stranded="NA"
+qsub zealous-octo-tanuki/gmap_build.qsub -N BO_UNI_GS -v genome=/mnt/research/radishGenomics/PublicData/brassica_oleracea/Edit_Bol.seq.uniq,gff=NA,gffi="NA",exon="NA",stranded="NA"
+
+#Arabidopsis thaliana genome
+
+qsub zealous-octo-tanuki/bt2_build.qsub -N AT_2016_BT -v genome=/mnt/research/radishGenomics/PublicData/AT_TAIR10/TAIR10_chr_all.fas,gff=/mnt/research/radishGenomics/PublicData/AT_TAIR10/TAIR10_GFF3_genes.gff,gffi="Parent",exon="mRNA",stranded="no"
+qsub zealous-octo-tanuki/gmap_build.qsub -N AT_2016_GS -v genome=/mnt/research/radishGenomics/PublicData/AT_TAIR10/TAIR10_chr_all.fas,gff=/mnt/research/radishGenomics/PublicData/AT_TAIR10/TAIR10_GFF3_genes.gff,gffi="Parent",exon="mRNA",stranded="no"
+
+#Sativus Transcriptome
+
+qsub zealous-octo-tanuki/bt2_build.qsub -N Sativus_BT -v genome=/mnt/research/radishGenomics/PublicData/SativusTranscriptome/SRR3314668.fastq,gffi="NA",exon="NA",stranded="NA"
+qsub zealous-octo-tanuki/gmap_build.qsub -N Sativus_GS -v genome=/mnt/research/radishGenomics/PublicData/SativusTranscriptome/SRR3314668.fastq,gffi="NA",exon="NA",stranded="NA"
