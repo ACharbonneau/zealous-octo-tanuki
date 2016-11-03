@@ -33,6 +33,7 @@ samtools index ${job}.sorted.bam
 
 if [[ "${gff}" = "NA" ]]
 then samtools idxstats ${job}.sorted.bam
+R --file=../zealous-octo-tanuki/Reformat_TranscriptCounts.R
 fi
 
 
