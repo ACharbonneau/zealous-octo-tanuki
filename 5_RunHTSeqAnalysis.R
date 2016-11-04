@@ -11,6 +11,8 @@ packages<-function(x){
 }
 packages(knitr)
 packages(rmarkdown)
+packages(pandoc)
+
 
 Inputfiles <- read.csv("../metadata/HTanalysisInputForR.csv")
 
