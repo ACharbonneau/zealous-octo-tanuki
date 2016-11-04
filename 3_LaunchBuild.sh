@@ -61,7 +61,7 @@ qsub zealous-octo-tanuki/gmap_build.qsub -N BO_UNI_GS -v genome=/mnt/research/ra
 qsub zealous-octo-tanuki/bt2_build.qsub -N AT_2016_BT -v genome=/mnt/research/radishGenomics/PublicData/AT_TAIR10/TAIR10_chr_all.fas,gff=/mnt/research/radishGenomics/PublicData/AT_TAIR10/TAIR10_GFF3_genes.gff,gffi="Parent",exon="mRNA",stranded="no"
 qsub zealous-octo-tanuki/gmap_build.qsub -N AT_2016_GS -v genome=/mnt/research/radishGenomics/PublicData/AT_TAIR10/TAIR10_chr_all.fas,gff=/mnt/research/radishGenomics/PublicData/AT_TAIR10/TAIR10_GFF3_genes.gff,gffi="Parent",exon="mRNA",stranded="no"
 
-#Sativus Transcriptome
-
-qsub zealous-octo-tanuki/bt2_build.qsub -N Sativus_BT -v genome=/mnt/research/radishGenomics/PublicData/SativusTranscriptome/SRR3314668.fastq,gffi="NA",exon="NA",stranded="NA"
-qsub zealous-octo-tanuki/gmap_build.qsub -N Sativus_GS -v genome=/mnt/research/radishGenomics/PublicData/SativusTranscriptome/SRR3314668.fastq,gffi="NA",exon="NA",stranded="NA"
+##Sativus Transcriptome
+#
+#qsub zealous-octo-tanuki/bt2_build.qsub -N Sativus_BT -v genome=/mnt/research/radishGenomics/PublicData/SativusTranscriptome/SRR3314668.fastq,gffi="NA",exon="NA",stranded="NA"
+#qsub zealous-octo-tanuki/gmap_build.qsub -N Sativus_GS -v genome=/mnt/research/radishGenomics/PublicData/SativusTranscriptome/SRR3314668.fastq,gffi="NA",exon="NA",stranded="NA"

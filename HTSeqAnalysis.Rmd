@@ -24,15 +24,24 @@ p.threshold <- 0.05
 
 ```{r LoadPackages, echo=FALSE, results='hide', include=FALSE}
 
-require(MASS)
-require(ggplot2)
-require(DESeq2)
-require(gtools)
-require(pheatmap)
-require(cowplot)
-require(RColorBrewer)
-require(dplyr)
-require(ggrepel)
+# Install function for packages    
+packages<-function(x){
+  x<-as.character(match.call()[[2]])
+  if (!require(x,character.only=TRUE)){
+    install.packages(pkgs=x,repos="http://cran.r-project.org")
+    require(x,character.only=TRUE)
+  }
+}
+
+packages(MASS)
+packages(ggplot2)
+packages(DESeq2)
+packages(gtools)
+packages(pheatmap)
+packages(cowplot)
+packages(RColorBrewer)
+packages(dplyr)
+packages(ggrepel)
 
 
 ```
@@ -193,7 +202,7 @@ summary(results_hvl, alpha= p.threshold)
 ## DESeq2 - High vs Low, with PSEUDO interaction
 ## contrast=c(column, numerator, denominator)
 
-Presults_hRvhK <- results( raphpseudo.DES, contrast=c("LocationLine", "ReedHigh", "KBSHigh"), cooksCutoff=FALSE, independentFiltering=TRUE, addMLE=TRUE, pAdjustMethod="BH", alpha = p.threshold)
+Presults_hRvhK <- results( raphpseudo.DES, contrast=c("LocationLine", "KBSHigh", "ReedHigh"), cooksCutoff=FALSE, independentFiltering=TRUE, addMLE=TRUE, pAdjustMethod="BH", alpha = p.threshold)
 
 Presults_hKvlK <- results( raphpseudo.DES, contrast=c("LocationLine", "KBSHigh", "KBSLow"), cooksCutoff=FALSE, independentFiltering=TRUE, addMLE=TRUE, pAdjustMethod="BH", alpha = p.threshold)
 
@@ -517,6 +526,12 @@ Presults_hvl_df <- inner_join(Presults_hRvlR_df, Presults_hKvlK_df, by=c("gene_n
 
 Presults_hvl_df <- mutate(Presults_hvl_df, AB_BM_Reed=ABlog2FoldChange.x*baseMean.x, AB_BM_KBS=ABlog2FoldChange.y*baseMean.y, diffL2FC=abs( ABlog2FoldChange.x - ABlog2FoldChange.y ) )
 
+colnames(Presults_hvl_df) <- c("baseMean_Reed","log2FoldChange_Reed","lfcMLE_Reed","lfcSE_Reed",
+      "stat_Reed","pvalue_Reed","padj_Reed","MLE_Reed","gene_name",
+      "FC_Reed","ABlog2FoldChange_Reed","baseMean_KBS","log2FoldChange_KBS",
+      "lfcMLE_KBS","lfcSE_KBS","stat_KBS","pvalue_KBS","padj_KBS",
+      "MLE_KBS","FC_KBS","ABlog2FoldChange_KBS","AB_BM_Reed","AB_BM_KBS",
+      "diffL2FC")
 
 write.csv( Presults_hvl_df, paste(subgroup$outputfilenamePseudoHvL), quote=FALSE, row.names=FALSE)
 
@@ -526,17 +541,17 @@ write.csv( Presults_hvl_df, paste(subgroup$outputfilenamePseudoHvL), quote=FALSE
 ```
 
 ```{r HighvLowReed, echo=FALSE, fig.path=paste("../figures/",subgroup$Dataname,"/", sep=""), fig.keep="last", fig.width=11}
-ggplot(Presults_hvl_df, aes(log2FoldChange.x, baseMean.x, label=gene_name)) +
-    geom_text_repel(data=filter( Presults_hvl_df, baseMean.x > 20 & log2FoldChange.x > 2 ), aes(col=padj.x)) +
-    geom_point(aes(col=padj.x)) + 
+ggplot(Presults_hvl_df, aes(log2FoldChange_Reed, baseMean_Reed, label=gene_name)) +
+    geom_text_repel(data=filter( Presults_hvl_df, baseMean_Reed > 20 & log2FoldChange_Reed > 2 ), aes(col=padj_Reed)) +
+    geom_point(aes(col=padj_Reed)) + 
     labs(title = "High vs Low Reed", x="Log 2 Fold Change", y="Base Mean") 
 
 ```
 
 ```{r HighvLowKBS, echo=FALSE, fig.path=paste("../figures/",subgroup$Dataname,"/", sep=""), fig.keep="last", fig.width=11}
-ggplot(Presults_hvl_df, aes(log2FoldChange.y, baseMean.y, label=gene_name)) +
-    geom_text_repel(data=filter( Presults_hvl_df, baseMean.y > 20 & log2FoldChange.y > 2), aes(col=padj.y)) +
-    geom_point(aes(col=padj.y)) + 
+ggplot(Presults_hvl_df, aes(log2FoldChange_KBS, baseMean_KBS, label=gene_name)) +
+    geom_text_repel(data=filter( Presults_hvl_df, baseMean_KBS > 20 & log2FoldChange_KBS > 2), aes(col=padj_KBS)) +
+    geom_point(aes(col=padj_KBS)) + 
     labs(title = "High vs Low KBS", x="Log 2 Fold Change", y="Base Mean")
 
 ```
@@ -646,7 +661,7 @@ and interaction model:
 
 ```{r, echo=FALSE}
 
-dplyr::select(Presults_hvl_df, gene_name, log2FoldChange.x, padj.x) %>% arrange(padj.x) %>% head( n=10 )
+dplyr::select(Presults_hvl_df, gene_name, log2FoldChange_Reed, padj_Reed) %>% arrange(padj_Reed) %>% head( n=10 )
 
 
 ```
