@@ -10,6 +10,7 @@ packages<-function(x){
   }
 }
 packages(knitr)
+packages(rmarkdown)
 
 Inputfiles <- read.csv("../metadata/HTanalysisInputForR.csv")
 
