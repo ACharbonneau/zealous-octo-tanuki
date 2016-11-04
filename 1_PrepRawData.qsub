@@ -1,0 +1,59 @@
+#!/bin/sh -login
+#PBS -j oe
+#PBS -l nodes=1:ppn=1,walltime=24:00:00,mem=10gb
+#PBS -m a
+#PBS -r n
+
+# -o : tells it where to put output from your job
+# -j oe : specifies that output and error messages from your job can be placed in the same location
+# -l : resource requests (maximum amounts needed for each)
+# -M : email address to send status updates to
+# -m abe : what to send email updates about (abort, begin, end)
+# -N : names your job
+# -r n : tells it not to re-run the script in the case of an error (so it doesn't overwrite any results generated$
+# -t 0-? : job numbers for array submission
+
+cd ${PBS_O_WORKDIR} || exit #Go to project analysis directory
+
+echo "1. Getting data"
+for i in `ls /mnt/research/radishGenomics/OriginalSequencingFiles/2008_AE_RNAseq/cel*/*.tar.gz`
+do tar -zxvf ${i} -C .
+done
+
+#Rename to format: Cel_Date_Lane_PlantID.filetype
+
+echo "2. Rename files"
+sh scripts/RenameAE_rawfiles.sh
+
+echo "3. Convert fna to fastq"
+rm *_ID*
+for i in `ls *.fna`; do perl zealous-octo-tanuki/fastaQual2fastq.pl ${i}; done
+for i in `ls *.fastq`; do cat ${i} | sed s/\!$// > ${i}.edit; echo ${i}; done
+
+echo "4. Clean up directory"
+rm -r `ls -d 20081*/`
+mkdir OriginalFiles
+mv *.fna OriginalFiles/
+mv *.qual OriginalFiles/
+rm *.fastq
+mkdir fastqc
+mkdir BowtieIndicies
+mkdir BUSCO
+
+echo "5. Get metadata"
+mkdir metadata
+cp /mnt/research/radishGenomics/OriginalSequencingFiles/2008_AE_RNAseq/cel6/SeqProductionSumm.xls metadata/SeqProductionSumm.xls
+grep -c "@30" *.fastq.edit > metadata/totalreads.txt
+cd metadata
+cp /mnt/research/radishGenomics/OriginalSequencingFiles/2008_AE_RNAseq_metadata/Exs\ QTL\ parents.xls .
+cp /mnt/research/radishGenomics/OriginalSequencingFiles/2008_AE_RNAseq_metadata/HTanalysisInputForR.csv .
+cp /mnt/research/radishGenomics/OriginalSequencingFiles/2008_AE_RNAseq_metadata/DifferentialGenesPseudoInputForR.csv .
+cp /mnt/research/radishGenomics/OriginalSequencingFiles/2008_AE_RNAseq_metadata/metadata.csv .
+
+echo "Data Acquired, launching pipeline"
+
+qsub zealous-octo-tanuki/FastQC.qsub
+sh zealous-octo-tanuki/LaunchBuild.sh
+cd BUSCO/
+sh zealous-octo-tanuki/BUSCO.sh
+
