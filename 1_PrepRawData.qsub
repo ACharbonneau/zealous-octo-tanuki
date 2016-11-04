@@ -17,17 +17,20 @@ cd ${PBS_O_WORKDIR} || exit #Go to project analysis directory
 
 echo "1. Getting data"
 for i in `ls /mnt/research/radishGenomics/OriginalSequencingFiles/2008_AE_RNAseq/cel*/*.tar.gz`
-do tar -zxvf ${i} -C .
+do tar -zxvf ${i} -C . 
 done
 
 #Rename to format: Cel_Date_Lane_PlantID.filetype
 
 echo "2. Rename files"
-sh scripts/RenameAE_rawfiles.sh
+sh zealous-octo-tanuki/RenameAE_rawfiles.sh
 
 echo "3. Convert fna to fastq"
 rm *_ID*
-for i in `ls *.fna`; do perl zealous-octo-tanuki/fastaQual2fastq.pl ${i}; done
+for i in `ls *.fna`
+do perl zealous-octo-tanuki/fastaQual2fastq.pl ${i}
+done
+
 for i in `ls *.fastq`; do cat ${i} | sed s/\!$// > ${i}.edit; echo ${i}; done
 
 echo "4. Clean up directory"
