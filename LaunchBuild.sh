@@ -7,9 +7,9 @@
 #Change Derives_from from number.1 to number:
 less /mnt/research/radishGenomics/PublicData/2016RsativusGenome/Rs_1.0.Gene.LFY.gff.gz | sed -r s/\(Derives_from=Rs[0-9]+\)\.[0-9]/\\1/g > /mnt/research/radishGenomics/PublicData/2016RsativusGenome/Edited_Rs_1.0.Gene.LFY.gff
 
-qsub zealous-octo-tanuki/4_bt2_build.qsub -N Jeong2016_BT -v genome=/mnt/research/radishGenomics/PublicData/2016RsativusGenome/Rs_1.0.chromosomes.fix.fasta,gff=/mnt/research/radishGenomics/PublicData/2016RsativusGenome/Edited_Rs_1.0.Gene.LFY.gff,gffi="Derives_from",exon="protein",stranded="yes"
+qsub zealous-octo-tanuki/bt2_build.qsub -N Jeong2016_BT -v genome=/mnt/research/radishGenomics/PublicData/2016RsativusGenome/Rs_1.0.chromosomes.fix.fasta,gff=/mnt/research/radishGenomics/PublicData/2016RsativusGenome/Edited_Rs_1.0.Gene.LFY.gff,gffi="Derives_from",exon="protein",stranded="yes"
 
-qsub zealous-octo-tanuki/4_gmap_build.qsub -N Jeong2016_GS -v genome=/mnt/research/radishGenomics/PublicData/2016RsativusGenome/Rs_1.0.chromosomes.fix.fasta,gff=/mnt/research/radishGenomics/PublicData/2016RsativusGenome/Edited_Rs_1.0.Gene.LFY.gff,gffi="Derives_from",exon="protein",stranded="yes"
+qsub zealous-octo-tanuki/gmap_build.qsub -N Jeong2016_GS -v genome=/mnt/research/radishGenomics/PublicData/2016RsativusGenome/Rs_1.0.chromosomes.fix.fasta,gff=/mnt/research/radishGenomics/PublicData/2016RsativusGenome/Edited_Rs_1.0.Gene.LFY.gff,gffi="Derives_from",exon="protein",stranded="yes"
 
 #Sativus Genome: Draft sequences of the radish (Raphanus sativus L.) genome
 #Kitashiba H, Li F, Hirakawa H, Kawanabe T, Zou Z, Hasegawa Y, Tonosaki K,
