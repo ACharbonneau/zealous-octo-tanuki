@@ -53,6 +53,8 @@ cp /mnt/research/radishGenomics/OriginalSequencingFiles/2008_AE_RNAseq_metadata/
 cp /mnt/research/radishGenomics/OriginalSequencingFiles/2008_AE_RNAseq_metadata/DifferentialGenesPseudoInputForR.csv .
 cp /mnt/research/radishGenomics/OriginalSequencingFiles/2008_AE_RNAseq_metadata/metadata.csv .
 
+cd ../
+
 echo "Data Acquired, launching pipeline"
 
 qsub zealous-octo-tanuki/FastQC.qsub
