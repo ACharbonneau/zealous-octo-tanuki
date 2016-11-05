@@ -29,7 +29,7 @@ samtools sort ${job}.bam ${job}.sorted
 
 samtools index ${job}.sorted.bam
 
-Nbams=`ls*.sorted.bam`
+Nbams=`ls *.sorted.bam`
 
 if [[ "${Nbams}" = 35]]
 then cd ../
