@@ -29,10 +29,11 @@ samtools sort ${job}.bam ${job}.sorted
 
 samtools index ${job}.sorted.bam
 
-Nbams=`ls *.sorted.bam`
+Nbams=`ls *.sorted.bam | wc -w`
 
-if [[ "${Nbams}" = 35]]
-then cd ../
+
+if [[ "${Nbams}" = 35 ]]
+then cd ..
 qsub zealous-octo-tanuki/MappingRate.qsub
 fi
 
