@@ -25,18 +25,18 @@ filelist=(*fastq.edit) #Get a list of all sequencing files
 
 indiv=${filelist[${PBS_ARRAYID}]} #assign indiv to be current sequence file
 
-PBS_JOBNAME=${PBS_JOBNAME}_${indiv} #rename job to job_indiv
+NEW_JOBNAME=${PBS_JOBNAME}_${indiv} #rename job to job_indiv
 
 cd ${PBS_O_WORKDIR}/${bsname}
 
-echo bsname="${PBS_JOBNAME}"
+echo bsname="${NEW_JOBNAME}"
 
 folder=`pwd`
 folder=`basename $folder`
 
 
-if [ ! -f ${PBS_JOBNAME}.sam ]
-then gsnap -d ${index} --force-single-end ../${indiv} -k 15 -A sam -N 1 -O -n 1 -Q --nofails -o ${PBS_JOBNAME}.sam
+if [ ! -f ${NEW_JOBNAME}.sam ]
+then gsnap -d ${index} --force-single-end ../${indiv} -k 15 -A sam -N 1 -O -n 1 -Q --nofails -o ${NEW_JOBNAME}.sam
 fi
 
 
