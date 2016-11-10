@@ -176,7 +176,7 @@ raphInt.DES <- DESeqDataSetFromMatrix(countData = exprs( raph.est ), colData = p
 #filter <- rowSums(nc >= 10) >= 2
 #raphInt.DES <- raphInt.DES[filter,]
 
-raphInt.DES  <- DESeq( raphInt.DES)
+raphInt.DES  <- DESeq( raphInt.DES, test="LRT", reduced=~FlowCell + Line)
 
 #raphInt.DES <- estimateSizeFactors(raphInt.DES)
 #raphInt.DES <- estimateDispersions(raphInt.DES)
