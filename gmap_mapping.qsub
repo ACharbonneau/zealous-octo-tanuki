@@ -43,7 +43,7 @@ fi
 
 
 if [ ! -f ${NEW_JOBNAME}.sam ]
-then qsub ../zealous-octo-tanuki/gmap_mapping.qsub -t ${PBS_ARRAYID} -N ${folder}.map -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}",job="${NEW_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
+then qsub ../zealous-octo-tanuki/gmap_mapping.qsub -t ${PBS_ARRAYID} -N ${folder}.map -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}",job="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
 fi
 
 
