@@ -12,7 +12,7 @@
 # -r n : tells it not to re-run the script in the case of an error (so it doesn't overwrite any results generated$
 # -t 0-? : job numbers for array submission
 
-
+module load R/3.2.0
 module load SAMTools/1.2
 
 cd ${PBS_O_WORKDIR} || exit
@@ -34,7 +34,6 @@ samtools index ${job}.sorted.bam
 
 if [[ "${gff}" = "NA" ]]
 then samtools idxstats ${job}.sorted.bam
-R --file=../zealous-octo-tanuki/Reformat_TranscriptCounts.R
 fi
 
 
