@@ -206,6 +206,6 @@ Runs samtools to get statistics for mapping quality of each run
 ####2.5
 - 2.5_DifferentialGenesPseudoR.R
 
-	Script that compares results from gene lists across replicates to get high confidence
-	genes
+		Script that compares results from gene lists across replicates to get high confidence
+		genes
 
