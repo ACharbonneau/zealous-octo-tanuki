@@ -12,16 +12,13 @@ packages<-function(x){
 packages(dplyr)
 
 
-countsDir <- file.path("./")
-
-#whereami <- getwd()
-#whereami <- basename(whereami)
+countsDir <- file.path(".")
 
 ALLTHEFILES <- list.files(countsDir, pattern = "*.samtools.*")
 
 for( X in 1:length(ALLTHEFILES)){
-  FileName <- readLines(file(paste(countsDir, "/", ALLTHEFILES[ X ], sep="")), n=1)
-  TempFile <- read.table(paste(countsDir, "/", ALLTHEFILES[ X ], sep=""), sep = "\t", header = F, skip = 1)
+  FileName <- readLines(file(ALLTHEFILES[ X ]), n=1)
+  TempFile <- read.table(ALLTHEFILES[ X ], sep = "\t", header = F, skip = 1)
   NewFile <- dplyr::select(TempFile, V1, V3 )
   write.table(NewFile, paste(FileName, ".counts.txt", sep=""), sep="\t", row.names=F, col.names=F, quote=F)
 }
