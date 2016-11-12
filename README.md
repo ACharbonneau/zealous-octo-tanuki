@@ -208,4 +208,9 @@ Runs samtools to get statistics for mapping quality of each run
 
 		Script that compares results from gene lists across replicates to get high confidence
 		genes
+		
+####2.6
+- 2.6_MitsuiAnnotate.R
+		
+		Script that combines Mitsui annotations with Mitsui DE list
 
