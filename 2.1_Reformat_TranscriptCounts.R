@@ -18,7 +18,7 @@ ALLTHEFILES <- list.files(countsDir, pattern = "*.samtools.*")
 
 for( X in 1:length(ALLTHEFILES)){
   FileName <- readLines(file(ALLTHEFILES[ X ]), n=1)
-  TempFile <- read.table(ALLTHEFILES[ X ], sep = "\t", header = F, skip = 1)
+  TempFile <- read.table(ALLTHEFILES[ X ], sep = "\t", header = F, skip = 1, , comment.char = "")
   NewFile <- dplyr::select(TempFile, V1, V3 )
   write.table(NewFile, paste(FileName, ".counts.txt", sep=""), sep="\t", row.names=F, col.names=F, quote=F)
 }
