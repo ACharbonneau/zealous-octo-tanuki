@@ -17,6 +17,6 @@ Inputfiles <- read.csv("../metadata/HTanalysisInputForR.csv")
 
 
 for (Mapping in unique(Inputfiles$Dataname)){
-  rmarkdown::render("HTSeqAnalysis.Rmd", output_file=paste( Mapping, "_DESeq2Analysis.html", sep=""),
+  rmarkdown::render("2.3_HTSeqAnalysis.Rmd", output_file=paste( Mapping, "_DESeq2Analysis.html", sep=""),
                     output_dir=paste("../DEseqOutput/", Mapping, sep=""))
 }        
