@@ -176,7 +176,10 @@ raphInt.DES <- DESeqDataSetFromMatrix(countData = exprs( raph.est ), colData = p
 #filter <- rowSums(nc >= 10) >= 2
 #raphInt.DES <- raphInt.DES[filter,]
 
-raphInt.DES  <- DESeq( raphInt.DES, test="LRT", reduced=~FlowCell + Line)
+raphInt.DES  <- DESeq( raphInt.DES )
+
+
+raphIntTestLRT.DES  <- DESeq( raphInt.DES, test="LRT", reduced=~FlowCell + Line)
 
 #raphInt.DES <- estimateSizeFactors(raphInt.DES)
 #raphInt.DES <- estimateDispersions(raphInt.DES)
@@ -190,10 +193,11 @@ raphInt.DES  <- DESeq( raphInt.DES, test="LRT", reduced=~FlowCell + Line)
 ## DESeq2 - High vs Low, NO interaction
 ## contrast=c(column, numerator, denominator)
 
-results_hvl <- results( raph.DES, contrast=c("Line", "High", "Low"), cooksCutoff=FALSE, independentFiltering=TRUE, addMLE=TRUE, pAdjustMethod="BH", alpha = p.threshold)
+results_hvl <- results( raph.DES, contrast=c("Line", "High", "Low"),
+                        cooksCutoff=FALSE, independentFiltering=TRUE, 
+                        addMLE=TRUE, pAdjustMethod="BH", alpha = p.threshold)
 
-  results_hvl$threshold <- as.logical( results_hvl$padj < p.threshold )
-    genes_hvl <- row.names( results_hvl )[ which( results_hvl$threshold )]
+results_hvl$threshold <- as.logical( results_hvl$padj < p.threshold )
 
 results_hvl <- results_hvl[order(results_hvl$padj),]   
 
@@ -213,15 +217,27 @@ Presults_hRvlR <- results( raphpseudo.DES, contrast=c("LocationLine", "ReedHigh"
 
 ## DESeq2 - High vs Low, WITH interaction
 ## contrast=c(column, numerator, denominator)
-Intresults_hvl <- results( raphInt.DES, contrast=c("Line", "High", "Low"), cooksCutoff=FALSE, independentFiltering=TRUE, # addMLE=TRUE, Error in results(raphInt.DES, contrast = c("Line", "High", "Low"), cooksCutoff = FALSE, addMLE=TRUE is only for when a beta prior was used. otherwise, the log2 fold changes are already MLE 
-pAdjustMethod="BH", alpha = p.threshold)
+Intresults_hvl <- results( raphInt.DES, contrast=c("Line", "High", "Low"),
+                           cooksCutoff=FALSE, independentFiltering=TRUE, 
+                           pAdjustMethod="BH", alpha = p.threshold )
+# addMLE=TRUE, Error in results(raphInt.DES, contrast = c("Line", "High", "Low"), cooksCutoff = FALSE, addMLE=TRUE is only for when a beta prior was used. otherwise, the log2 fold changes are already MLE 
 
-  Intresults_hvl$threshold <- as.logical( Intresults_hvl$padj < p.threshold )
-    Intgenes_hvl <- row.names( Intresults_hvl )[ which( Intresults_hvl$threshold )]
+Intresults_hvl$threshold <- as.logical( Intresults_hvl$padj < p.threshold )
 
 Intresults_hvl <- Intresults_hvl[order(Intresults_hvl$padj),]   
 
 summary(Intresults_hvl, alpha= p.threshold)
+
+
+raphIntTestLRTresults_hvl <- results( raphIntTestLRT.DES, 
+                                      contrast=c("Line", "High", "Low"), 
+                                      cooksCutoff=FALSE, independentFiltering=TRUE,
+                                      pAdjustMethod="BH", alpha = p.threshold )
+
+raphIntTestLRTresults_hvl$threshold <- as.logical( raphIntTestLRTresults_hvl$padj < p.threshold )
+raphIntTestLRTresults_hvl <- raphIntTestLRTresults_hvl[order(raphIntTestLRTresults_hvl$padj),]   
+
+summary(raphIntTestLRTresults_hvl, alpha= p.threshold)
  
 ```
 
@@ -607,7 +623,7 @@ Differentially expressed genes from the interaction model, high vs low.
 ```{r IntGeneList, echo=FALSE, results='hide'}
 
 Intresults_hvl_df <- data.frame( Intresults_hvl )
-  Intresults_hvl_df$gene_name <- row.names( Intresults_hvl )
+Intresults_hvl_df$gene_name <- row.names( Intresults_hvl )
   
 Intresults_hvl_df$FC <- logratio2foldchange(Intresults_hvl_df$log2FoldChange)
 
@@ -621,7 +637,19 @@ ggplot(Intresults_hvl_df, aes(log2FoldChange, baseMean, label=gene_name)) +
     geom_text_repel(data=filter( Intresults_hvl_df, baseMean > 20 & log2FoldChange > 2), aes(col=padj)) +
     geom_point(aes(col=padj)) + 
     labs(title = "Interaction: High vs Low", x="Log 2 Fold Change", y="Base Mean") 
+
+raphIntTestLRTresults_hvl_df <- data.frame( raphIntTestLRTresults_hvl )
+raphIntTestLRTresults_hvl_df$gene_name <- row.names( raphIntTestLRTresults_hvl )
+raphIntTestLRTresults_hvl_df$FC <- logratio2foldchange(raphIntTestLRTresults_hvl_df$log2FoldChange)
+raphIntTestLRTresults_hvl_df$ABlog2FoldChange <- abs(raphIntTestLRTresults_hvl$log2FoldChange)
+raphIntTestLRTresults_hvl_df <- filter(raphIntTestLRTresults_hvl_df, !is.na(padj)) %>%
+                    filter( threshold==TRUE)
+
+write.csv( raphIntTestLRTresults_hvl_df, paste(subgroup$outputfilenameLRTinteraction), quote=FALSE, row.names=FALSE )
+
 ```
+
+
 
 
 ```{r MeanExpressionPlots, eval=FALSE, echo=FALSE}
