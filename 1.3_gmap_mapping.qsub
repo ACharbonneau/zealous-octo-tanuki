@@ -53,5 +53,5 @@ fi
 
 
 if [ -f ${NEW_JOBNAME}.sam ] 
-then qsub ../1.4_zealous-octo-tanuki/view_samtools.qsub -N ${bsname}.samtools -v genome="${genome}",index="${index}",gff="${gff}",bsname="${NEW_JOBNAME}",indiv="${indiv}",job="${NEW_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
+then qsub ../zealous-octo-tanuki/1.4_view_samtools.qsub -N ${bsname}.samtools -v genome="${genome}",index="${index}",gff="${gff}",bsname="${NEW_JOBNAME}",indiv="${indiv}",job="${NEW_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
 fi
