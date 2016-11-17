@@ -1,6 +1,17 @@
-require(ggplot2)
-require(dplyr)
-require(GGally)
+rm(list = ls())
+
+# Install function for packages    
+packages<-function(x){
+  x<-as.character(match.call()[[2]])
+  if (!require(x,character.only=TRUE)){
+    install.packages(pkgs=x,repos="http://cran.r-project.org")
+    require(x,character.only=TRUE)
+  }
+}
+
+packages(ggplot2)
+packages(dplyr)
+#packages(GGally)
 
 totalreads <- read.table("../metadata/totalreads.txt", sep=":")
 
@@ -8,7 +19,7 @@ totalreads$V1 <- sub(".fastq.edit", "", totalreads$V1)
 
 colnames(totalreads) <- c("X", "TotalReads")
 
-folders <- list.files(file.path("../DEseqOutput/"))
+folders <- list.dirs(file.path("../DEseqOutput"), full.names = F, recursive = F)
 
 mappedfiles <- list.files(paste("../DEseqOutput/", folders, sep = ""), pattern ="*_counts.csv")
 
