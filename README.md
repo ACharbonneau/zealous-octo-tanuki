@@ -1,6 +1,17 @@
 # zealous-octo-tanuki
 RNAseq Analysis of 2008 anther exertion line sequencing data
 
+This paper was built on the MSU High Performance Computing Cluster. Building it elsewhere will require installing several programs, and may require some editing of submission scripts. At a minimum, the machine running it will need:
+
+git 2.10.1
+FastQC 0.11.3
+bowtie2 2.2.6
+GMAP version 2016-05-01 (installed via linuxbrew)
+SAMTools 1.2
+HTSeq 0.6.1
+R 3.2.0 (packages will auto-install)
+pandoc 1.17.3
+
 TLDR; 
 
 1. Make a main directory
@@ -8,13 +19,13 @@ TLDR;
 2. Change hardcoded file paths in 1_PrepRawData.sh and 3_LaunchBuild.sh, if necessary
 3. Run script 1_PrepRawData.qsub, from the main directory. 
 
-> bash zealous-octo-tanuki/1_PrepRawData.qsub
+> qsub zealous-octo-tanuki/1_PrepRawData.qsub
 
 When that has completely finished:
 
 4. Run script 2_MappingRate.qsub, from the main directory
 
-> qsub bash zealous-octo-tanuki/2_MappingRate.qsub
+> qsub zealous-octo-tanuki/2_MappingRate.qsub
 
 ## Files
 
