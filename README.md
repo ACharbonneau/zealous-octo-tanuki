@@ -11,13 +11,14 @@ SAMTools 1.2
 HTSeq 0.6.1
 R 3.2.0 (packages will auto-install)
 pandoc 1.17.3
+BUSCO_v1.22.py (installed via linuxbrew)
 
-TLDR; 
+TLDR;
 
 1. Make a main directory
 2. Clone repo onto HPC
 2. Change hardcoded file paths in 1_PrepRawData.sh and 3_LaunchBuild.sh, if necessary
-3. Run script 1_PrepRawData.qsub, from the main directory. 
+3. Run script 1_PrepRawData.qsub, from the main directory.
 
 > qsub zealous-octo-tanuki/1_PrepRawData.qsub
 
@@ -100,8 +101,8 @@ Calls:
 
 - 1.1_LaunchBuild.sh
 		Script that has code for auto-submitting the qsubs for building the genome indices with the
-		right options. Paths to all files required for processing up until the HTseq count step are 
-		hard coded here and passed from qsub to qsub. This keeps walltime under 4 hours for most 
+		right options. Paths to all files required for processing up until the HTseq count step are
+		hard coded here and passed from qsub to qsub. This keeps walltime under 4 hours for most
 		tasks, but keeps the user from having to track files. I'm quite proud of it.
 
 		The pipeline diverges so reads are mapped to 5 references, each with both BT2 and GSNAP/GMAP
@@ -132,9 +133,9 @@ Calls:
 
 #### 1.2
 - 1.2_bt2_build.qsub and 1.2_gmap_build.qsub
-		Build indicies for each reference, then spawns one mapping operation for every available 
-		fastq file. 
-		
+		Build indicies for each reference, then spawns one mapping operation for every available
+		fastq file.
+
 		Calls:
 
 		- 1.3_bt2_mapping.qsub
@@ -159,8 +160,8 @@ Calls:
 
 #### 1.4
 - 1.4_view_samtools.qsub
-		Converts a sam file to bam and removes low quality mappings. In the case of 
-		transcriptomes, samtools also makes a count file, otherwise the bam is passed 
+		Converts a sam file to bam and removes low quality mappings. In the case of
+		transcriptomes, samtools also makes a count file, otherwise the bam is passed
 		to HTseq for counting.
 
 - 1.4_echo.qsub
@@ -182,7 +183,7 @@ Calls:
 ### 2_MappingRate.qsub
 Runs samtools to get statistics for mapping quality of each run
 
-		Calls: 
+		Calls:
 
 		- 2.1_Reformat_TranscriptCounts.R
 
@@ -190,9 +191,9 @@ Runs samtools to get statistics for mapping quality of each run
 #### 2.1
 - 2.1_Reformat_TranscriptCounts.R
 
-		While reads mapped to a genome in this pipeline are counted by HTseq, reads 
-		mapped to the transcriptome are just counted by samtools. This works because the 
-		transcriptome is unassembled. This script edits the samtools count file to be the 
+		While reads mapped to a genome in this pipeline are counted by HTseq, reads
+		mapped to the transcriptome are just counted by samtools. This works because the
+		transcriptome is unassembled. This script edits the samtools count file to be the
 		same format as HTseq output, so they can all be put into the same DEseq2 pipeline.
 
 		Calls: nothing
@@ -200,8 +201,8 @@ Runs samtools to get statistics for mapping quality of each run
 #### 2.2
 - 2.2_RunHTSeqAnalysis.R
 
-		This is a driver script for the DEseq2 pipeline Rmd script. It will generate output 
-		files and pretty HTML summary documents for each mapping. This will alsooutput lists 
+		This is a driver script for the DEseq2 pipeline Rmd script. It will generate output
+		files and pretty HTML summary documents for each mapping. This will alsooutput lists
 		of differentially expressed genes, in csv format.
 
 		Calls:
@@ -210,9 +211,9 @@ Runs samtools to get statistics for mapping quality of each run
 
 #### 2.3
 - 2.3_HTSeqAnalysis.Rmd
-		
+
 		Reads in all count files from mappings to a single reference, merges them into a single
-		expression data set, and uses DESeq to do differential expression analysis. Provides 
+		expression data set, and uses DESeq to do differential expression analysis. Provides
 		several exploratory data analysis as well as DE gene lists
 
 #### 2.4
@@ -220,15 +221,14 @@ Runs samtools to get statistics for mapping quality of each run
 
 		Script that uses output from 2.3_HTSeqAnalysis.Rmd and 5_MappingRate.sh to plot
 		mapping rate differences among references and mappers
-		
+
 #### 2.5
 - 2.5_DifferentialGenesPseudoR.R
 
 		Script that compares results from gene lists across replicates to get high confidence
 		genes
-		
+
 #### 2.6
 - 2.6_MitsuiAnnotate.R
-		
-		Script that combines Mitsui annotations with Mitsui DE list
 
+		Script that combines Mitsui annotations with Mitsui DE list

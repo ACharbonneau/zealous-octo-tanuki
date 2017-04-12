@@ -1,4 +1,4 @@
-#!/bin/sh -login
+#!/bin/bash -login
 #PBS -j oe
 #PBS -l nodes=1:ppn=1,walltime=0:30:00,mem=10gb
 #PBS -m a
@@ -18,7 +18,7 @@ then
         exit 1
 fi
 
-cd ${PBS_O_WORKDIR}
+cd ${PBS_O_WORKDIR} || exit
 
 module load bowtie2/2.2.6
 module load SAMTools/1.2

@@ -1,4 +1,4 @@
-#!/bin/sh -login
+#!/bin/bash -login
 #PBS -j oe
 #PBS -l nodes=1:ppn=1,walltime=04:00:00,mem=10gb
 #PBS -m a
@@ -32,11 +32,11 @@ samtools index ${job}.sorted.bam
 ### Send transcriptome to samtools
 
 if [[ "${gff}" = "NA" ]]
-then samtools idxstats ${job}.sorted.bam
+  then samtools idxstats ${job}.sorted.bam
 fi
 
 
 ### Send genomes to HTseq
 if [[ "${gff}" != "NA" ]]
-then qsub ../zealous-octo-tanuki/1.5_htseq.qsub -N ${bsname}.HTseq -v genome="${genome}",index="${index}",gff="${gff}",bsname="${bsname}",indiv="${indiv}",job="${job}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
+  then qsub ../zealous-octo-tanuki/1.5_htseq.qsub -N ${bsname}.HTseq -v genome="${genome}",index="${index}",gff="${gff}",bsname="${bsname}",indiv="${indiv}",job="${job}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
 fi

@@ -1,4 +1,4 @@
-#!/bin/sh -login
+#!/bin/bash -login
 #PBS -j oe
 #PBS -l nodes=1:ppn=1,walltime=02:00:00,mem=10gb
 #PBS -m a
@@ -14,18 +14,14 @@
 
 
 if [ "$PBS_JOBNAME" == "notset" ]
-then
-        echo "please set the job name"
-        exit 1
+  then
+  echo "please set the job name"
+  exit 1
 fi
-
-
 
 cd ${PBS_O_WORKDIR} || exit
 
-
 mkdir ${PBS_JOBNAME} #make a folder for each genome you're mapping to
-
 
 source ~/.bash_profile
 
@@ -34,7 +30,6 @@ source ~/.bash_profile
 #Launch mapper
 rc=$?
 
-if [[ $rc = 0 ]] 
-then qsub zealous-octo-tanuki/1.3_gmap_mapping.qsub -N ${PBS_JOBNAME}.map -o ${PBS_JOBNAME}/ -v genome="${genome}",index="${PBS_JOBNAME}",gff="${gff}",bsname="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
-
+if [[ $rc = 0 ]]
+  then qsub zealous-octo-tanuki/1.3_gmap_mapping.qsub -N ${PBS_JOBNAME}.map -o ${PBS_JOBNAME}/ -v genome="${genome}",index="${PBS_JOBNAME}",gff="${gff}",bsname="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
 fi

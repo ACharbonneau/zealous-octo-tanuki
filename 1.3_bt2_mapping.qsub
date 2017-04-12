@@ -1,4 +1,4 @@
-#!/bin/sh -login
+#!/bin/bash -login
 #PBS -j oe
 #PBS -l nodes=1:ppn=2,walltime=4:00:00,mem=10gb
 #PBS -m a
@@ -16,9 +16,7 @@
 
 cd ${PBS_O_WORKDIR} || exit #Go to directory with sequencing files
 
-
 filelist=(*fastq.edit) #Get a list of all sequencing files
-
 
 indiv=${filelist[${PBS_ARRAYID}]} #assign indiv to be current sequence file
 
@@ -28,14 +26,12 @@ cd ${PBS_O_WORKDIR}/${bsname}
 
 module load bowtie2/2.2.6
 
-
-
 #Then launch metadata collector
 rc=$?
 
-if [[ $rc = 0 ]] 
-then qsub ../zealous-octo-tanuki/1.4_echo.qsub -N ${PBS_JOBNAME}.metadata -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}"
-fi 
+if [[ $rc = 0 ]]
+  then qsub ../zealous-octo-tanuki/1.4_echo.qsub -N ${PBS_JOBNAME}.metadata -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}"
+fi
 #Run bowtie2
 
 # Using default mode: search for multiple alignments, report the best one
@@ -57,7 +53,7 @@ folder=`basename $folder`
 
 
 if [ ! -f ${folder}.map-${PBS_ARRAYID}_*.fastq.edit.sam ]
-then qsub ../zealous-octo-tanuki/1.3_bt2_mapping.qsub -t ${PBS_ARRAYID} -N ${folder} -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}",job="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
+  then qsub ../zealous-octo-tanuki/1.3_bt2_mapping.qsub -t ${PBS_ARRAYID} -N ${folder} -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}",job="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
 fi
 
 
@@ -66,5 +62,5 @@ fi
 
 
 if [ -f ${folder}.map-${PBS_ARRAYID}_*.fastq.edit.sam ]
-then qsub ../zealous-octo-tanuki/1.4_view_samtools.qsub -N ${bsname}.samtools -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}",job="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
+  then qsub ../zealous-octo-tanuki/1.4_view_samtools.qsub -N ${bsname}.samtools -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}",job="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
 fi

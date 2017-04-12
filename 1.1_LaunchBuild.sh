@@ -1,3 +1,5 @@
+#!/bin/bash
+
 #Sativus Genome:
 #Jeong, Y.-M., Kim, N., Ahn, B. O., Oh, M., Chung, W.-H., Chung, H., et al.
 #(2016). Elucidating the triplicated ancestral genome structure of radish based
@@ -72,7 +74,7 @@ qsub zealous-octo-tanuki/1.2_bt2_build.qsub -N AT_2016_BT -v genome=/mnt/researc
 qsub zealous-octo-tanuki/1.2_gmap_build.qsub -N AT_2016_GS -v genome=/mnt/research/radishGenomics/PublicData/AT_TAIR10/TAIR10_chr_all.fas,gff=/mnt/research/radishGenomics/PublicData/AT_TAIR10/TAIR10_GFF3_genes.gff,gffi="Parent",exon="exon",stranded="no"
 
 
-cd BUSCO/
+cd BUSCO/ || exit
 
 qsub ../zealous-octo-tanuki/1.1_BUSCO.qsub -N Jeong2016 -v genome=/mnt/research/radishGenomics/PublicData/2016RsativusGenome/Rs_1.0.chromosomes.fix.fasta
 

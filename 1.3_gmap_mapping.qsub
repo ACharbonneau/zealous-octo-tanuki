@@ -1,4 +1,4 @@
-#!/bin/sh -login
+#!/bin/bash -login
 #PBS -j oe
 #PBS -l nodes=1:ppn=2,walltime=6:00:00,mem=10gb
 #PBS -m a
@@ -27,7 +27,7 @@ indiv=${filelist[${PBS_ARRAYID}]} #assign indiv to be current sequence file
 
 NEW_JOBNAME=${PBS_JOBNAME}_${indiv} #rename job to job_indiv
 
-cd ${PBS_O_WORKDIR}/${bsname}
+cd ${PBS_O_WORKDIR}/${bsname} || exit
 
 echo bsname="${NEW_JOBNAME}"
 
@@ -36,14 +36,14 @@ folder=`basename $folder`
 
 
 if [ ! -f ${NEW_JOBNAME}.sam ]
-then gsnap -d ${index} --force-single-end ../${indiv} -k 15 -A sam -N 1 -O -n 1 -Q --nofails -o ${NEW_JOBNAME}.sam
+  then gsnap -d ${index} --force-single-end ../${indiv} -k 15 -A sam -N 1 -O -n 1 -Q --nofails -o ${NEW_JOBNAME}.sam
 fi
 
 
 
 
 if [ ! -f ${NEW_JOBNAME}.sam ]
-then qsub ../zealous-octo-tanuki/1.3_gmap_mapping.qsub -t ${PBS_ARRAYID} -N ${folder}.map -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}",job="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
+  then qsub ../zealous-octo-tanuki/1.3_gmap_mapping.qsub -t ${PBS_ARRAYID} -N ${folder}.map -v genome="${genome}",index="${index}",gff="${gff}",bsname="${PBS_JOBNAME}",indiv="${indiv}",job="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
 fi
 
 
@@ -52,6 +52,6 @@ fi
 
 
 
-if [ -f ${NEW_JOBNAME}.sam ] 
-then qsub ../zealous-octo-tanuki/1.4_view_samtools.qsub -N ${bsname}.samtools -v genome="${genome}",index="${index}",gff="${gff}",bsname="${NEW_JOBNAME}",indiv="${indiv}",job="${NEW_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
+if [ -f ${NEW_JOBNAME}.sam ]
+  then qsub ../zealous-octo-tanuki/1.4_view_samtools.qsub -N ${bsname}.samtools -v genome="${genome}",index="${index}",gff="${gff}",bsname="${NEW_JOBNAME}",indiv="${indiv}",job="${NEW_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
 fi

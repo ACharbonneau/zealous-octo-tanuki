@@ -1,4 +1,4 @@
-#!/bin/sh -login
+#!/bin/bash -login
 #PBS -j oe
 #PBS -l nodes=1:ppn=1,walltime=4:00:00,mem=10gb
 #PBS -m a
@@ -16,8 +16,9 @@
 cd ${PBS_O_WORKDIR} || exit #Go to project analysis directory
 
 echo "1. Getting data"
-for i in `ls /mnt/research/radishGenomics/OriginalSequencingFiles/2008_AE_RNAseq/cel*/*.tar.gz`
-do tar -zxvf ${i} -C .
+for i in /mnt/research/radishGenomics/OriginalSequencingFiles/2008_AE_RNAseq/cel*/*.tar.gz
+  do  [[ -e ${i} ]] || break
+  tar -zxvf ${i} -C .
 done
 
 #Rename to format: Cel_Date_Lane_PlantID.filetype
@@ -27,11 +28,16 @@ sh zealous-octo-tanuki/1.1_RenameAE_rawfiles.sh
 
 echo "3. Convert fna to fastq"
 rm *_ID*
-for i in `ls *.fna`
-do perl zealous-octo-tanuki/1.1_fastaQual2fastq.pl ${i}
+for i in *.fna
+  do [[ -e ${i} ]] || break
+  perl zealous-octo-tanuki/1.1_fastaQual2fastq.pl ${i}
 done
 
-for i in `ls *.fastq`; do cat ${i} | sed s/\!$// > ${i}.edit; echo ${i}; done
+for i in *.fastq
+  do [[ -e ${i} ]] || break
+  cat ${i} | sed s/\!$// > ${i}.edit
+  echo ${i}
+done
 
 echo "4. Clean up directory"
 rm -r `ls -d 20081*/`
@@ -47,13 +53,13 @@ echo "5. Get metadata"
 mkdir metadata
 cp /mnt/research/radishGenomics/OriginalSequencingFiles/2008_AE_RNAseq/cel6/SeqProductionSumm.xls metadata/SeqProductionSumm.xls
 grep -c "@30" *.fastq.edit > metadata/totalreads.txt
-cd metadata
+cd metadata || exit
 cp /mnt/research/radishGenomics/OriginalSequencingFiles/2008_AE_RNAseq_metadata/Exs\ QTL\ parents.xls .
 cp /mnt/research/radishGenomics/OriginalSequencingFiles/2008_AE_RNAseq_metadata/HTanalysisInputForR.csv .
 cp /mnt/research/radishGenomics/OriginalSequencingFiles/2008_AE_RNAseq_metadata/DifferentialGenesPseudoInputForR.csv .
 cp /mnt/research/radishGenomics/OriginalSequencingFiles/2008_AE_RNAseq_metadata/metadata.csv .
 
-cd ../
+cd ../ || exit
 
 echo "Data Acquired, launching pipeline"
 
