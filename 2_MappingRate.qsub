@@ -19,21 +19,21 @@ module load SAMTools/1.3.1
 cd ${PBS_O_WORKDIR} || exit #Go to directory with sequencing files
 
 for alignrun in `ls -d *[BG][TS]`
-do
-for bamfile in `ls ${alignrun}/*sorted.bam`
-do samtools flagstat ${bamfile} 
-done > ${alignrun}/stats.txt
+  do
+    for bamfile in `ls ${alignrun}/*sorted.bam`
+      do samtools flagstat ${bamfile}
+    done > ${alignrun}/stats.txt
 done
 
 for transcriptrun in `ls -d [BR][OR]*/`
-do cd ${transcriptrun}
+do cd ${transcriptrun} || exit
 R --file=../zealous-octo-tanuki/2.1_Reformat_TranscriptCounts.R
-cd -
+cd - || exit
 done
 
 module load pandoc
 
-cd zealous-octo-tanuki/
+cd zealous-octo-tanuki/ || exit
 
 R --file=2.2_RunHTSeqAnalysis.R
 
@@ -42,4 +42,3 @@ R --file=2.4_MappingRates.R
 R --file=2.5_DifferentialGenesPseudoR.R
 
 R --file=2.6_MitsuiAnnotate.R
-
