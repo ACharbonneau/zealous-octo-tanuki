@@ -4,14 +4,22 @@ RNAseq Analysis of 2008 anther exertion line sequencing data
 This paper was built on the MSU High Performance Computing Cluster. Building it elsewhere will require installing several programs, and may require some editing of submission scripts. At a minimum, the machine running it will need:
 
 git 2.10.1
+
 FastQC 0.11.3
+
 bowtie2 2.2.6
+
 GMAP version 2016-05-01 (installed via linuxbrew)
+
 SAMTools 1.2
+
 HTSeq 0.6.1
+
 R 3.2.0 (packages will auto-install)
+
 pandoc 1.17.3
-BUSCO_v1.22.py (installed via linuxbrew)
+
+BUSCO_v1.22.py 
 
 TLDR;
 
