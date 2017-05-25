@@ -73,6 +73,15 @@ qsub zealous-octo-tanuki/1.2_bt2_build.qsub -N AT_2016_BT -v genome=/mnt/researc
 
 qsub zealous-octo-tanuki/1.2_gmap_build.qsub -N AT_2016_GS -v genome=/mnt/research/radishGenomics/PublicData/AT_TAIR10/TAIR10_chr_all.fas,gff=/mnt/research/radishGenomics/PublicData/AT_TAIR10/TAIR10_GFF3_genes.gff,gffi="Parent",exon="exon",stranded="no"
 
+# Nie, S., Li, C., Xu, L., Wang, Y., Huang, D., Muleke, E. M., et al. (2016).
+# De novo transcriptome analysis in radish (Raphanus sativus L.) and identification of critical genes involved in bolting and flowering.
+# BMC Genomics, 17(1), 1–16. http://doi.org/10.1186/s12864-016-2633-2
+
+qsub zealous-octo-tanuki/1.2_bt2_build.qsub -N NieLeaf2016_BT -v genome=/mnt/research/radishGenomics/PublicData/Nie_Leaf_2016,gff="NA",gffi="NA",exon="NA",stranded="NA"
+
+qsub zealous-octo-tanuki/1.2_gmap_build.qsub -N NieLeaf2016_GS -v genome=/mnt/research/radishGenomics/PublicData/Nie_Leaf_2016,gff="NA",gffi="NA",exon="NA",stranded="NA"
+
+
 
 cd BUSCO/ || exit
 
