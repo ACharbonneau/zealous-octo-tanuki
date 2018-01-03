@@ -16,6 +16,8 @@
 # -t 0-? : job numbers for array submission
 
 source ~/.bash_profile
+module load GNU/4.9
+module load GMAP/20160609
 
 cd ${PBS_O_WORKDIR} || exit #Go to directory with sequencing files
 

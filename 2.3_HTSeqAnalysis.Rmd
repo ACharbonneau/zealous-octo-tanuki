@@ -2,12 +2,12 @@
 title: "AE_RNAseq"
 author: "Amanda Charbonneau"
 date: "March 30, 2016"
-output: 
-  html_document: 
+output:
+  html_document:
     number_sections: yes
     toc: yes
     toc_depth: 4
-    
+
 ---
 
 #Global parameters for modeling
@@ -66,12 +66,12 @@ row.names(meta) <- meta[,1]
 ```{r Merge Gene Counts, echo=FALSE, include=FALSE, results='hide'}
 
 
-File_Num <- length(ALLTHEFILES) 
+File_Num <- length(ALLTHEFILES)
 
 
 # Make first dataset into starting dataframe
-ALLTHEGENES <- read.csv(paste(subgroup$countsDir, "/", ALLTHEFILES[ 1 ], sep=""), 
-                        sep = "\t", header = F, 
+ALLTHEGENES <- read.csv(paste(subgroup$countsDir, "/", ALLTHEFILES[ 1 ], sep=""),
+                        sep = "\t", header = F,
                         col.names = c("Genes", regmatches(ALLTHEFILES[ 1 ], regexec("[1-6]_2008[0-9]+_[0-9]_[A-Z]+[0-9]", ALLTHEFILES[ 1 ]))))
 
 # Remove X from name of column 2
@@ -88,14 +88,14 @@ for( X in c( 2:File_Num )){ #start at 2 because first dataset already in
   Temp_File <- read.csv(paste(subgroup$countsDir, "/", ALLTHEFILES[ X ], sep=""), sep = "\t", header = F)
   colnames(Temp_File) <- c("Genes", File_Name)
   ALLTHEGENES <- inner_join( ALLTHEGENES, Temp_File )
-  
+
 }
 
 no_feature <- colSums(dplyr::filter(ALLTHEGENES, Genes == "__no_feature" |
                                Genes == "__ambiguous" |
                                Genes == "__too_low_aQual" |
                                Genes == "__not_aligned" |
-                               Genes == "__alignment_not_unique" )[,-1]) 
+                               Genes == "__alignment_not_unique" )[,-1])
 
 
 ALLTHEGENES <- dplyr::filter(ALLTHEGENES, Genes != "__no_feature" &
@@ -110,7 +110,7 @@ row.names(ALLTHEGENES) <- ALLTHEGENES[,1]
 genecounts <- as.data.frame(colSums(ALLTHEGENES[2:(File_Num+1)]))
 colnames(genecounts) <- "MappedReads"
 
-if ( sum(no_feature) != 0 ) { 
+if ( sum(no_feature) != 0 ) {
 genecounts <- cbind(genecounts, t(no_feature)[1:35])
 colnames(genecounts) <- c("MappedReads", "UnmappedReads")
 }
@@ -194,7 +194,7 @@ raphIntTestLRT.DES  <- DESeq( raphInt.DES, test="LRT", reduced=~FlowCell + Line)
 ## contrast=c(column, numerator, denominator)
 
 results_hvl <- results( raph.DES, contrast=c("Line", "High", "Low"),
-                        cooksCutoff=FALSE, independentFiltering=TRUE, 
+                        cooksCutoff=FALSE, independentFiltering=TRUE,
                         addMLE=TRUE, pAdjustMethod="BH", alpha = p.threshold)
 
 results_hvl$threshold <- as.logical( results_hvl$padj < p.threshold )
@@ -214,13 +214,16 @@ Presults_lRvlK <- results( raphpseudo.DES, contrast=c("LocationLine", "KBSLow", 
 
 Presults_hRvlR <- results( raphpseudo.DES, contrast=c("LocationLine", "ReedHigh", "ReedLow"), cooksCutoff=FALSE, independentFiltering=TRUE, addMLE=TRUE, pAdjustMethod="BH", alpha = p.threshold)
 
+Presults_hRvlK <- results( raphpseudo.DES, contrast=c("LocationLine", "ReedHigh", "KBSLow"), cooksCutoff=FALSE, independentFiltering=TRUE, addMLE=TRUE, pAdjustMethod="BH", alpha = p.threshold)
+
+Presults_hKvlR <- results( raphpseudo.DES, contrast=c("LocationLine", "KBSHigh", "ReedLow"), cooksCutoff=FALSE, independentFiltering=TRUE, addMLE=TRUE, pAdjustMethod="BH", alpha = p.threshold)
 
 ## DESeq2 - High vs Low, WITH interaction
 ## contrast=c(column, numerator, denominator)
 Intresults_hvl <- results( raphInt.DES, contrast=c("Line", "High", "Low"),
-                           cooksCutoff=FALSE, independentFiltering=TRUE, 
+                           cooksCutoff=FALSE, independentFiltering=TRUE,
                            pAdjustMethod="BH", alpha = p.threshold )
-# addMLE=TRUE, Error in results(raphInt.DES, contrast = c("Line", "High", "Low"), cooksCutoff = FALSE, addMLE=TRUE is only for when a beta prior was used. otherwise, the log2 fold changes are already MLE 
+# addMLE=TRUE, Error in results(raphInt.DES, contrast = c("Line", "High", "Low"), cooksCutoff = FALSE, addMLE=TRUE is only for when a beta prior was used. otherwise, the log2 fold changes are already MLE
 
 Intresults_hvl$threshold <- as.logical( Intresults_hvl$padj < p.threshold )
 
@@ -229,8 +232,8 @@ Intresults_hvl <- Intresults_hvl[order(Intresults_hvl$padj),]
 summary(Intresults_hvl, alpha= p.threshold)
 
 
-raphIntTestLRTresults_hvl <- results( raphIntTestLRT.DES, 
-                                      contrast=c("Line", "High", "Low"), 
+raphIntTestLRTresults_hvl <- results( raphIntTestLRT.DES,
+                                      contrast=c("Line", "High", "Low"),
                                       cooksCutoff=FALSE, independentFiltering=TRUE,
                                       pAdjustMethod="BH", alpha = p.threshold )
 
@@ -238,7 +241,7 @@ raphIntTestLRTresults_hvl$threshold <- as.logical( raphIntTestLRTresults_hvl$pad
 raphIntTestLRTresults_hvl <- raphIntTestLRTresults_hvl[order(raphIntTestLRTresults_hvl$padj),]   
 
 summary(raphIntTestLRTresults_hvl, alpha= p.threshold)
- 
+
 ```
 
 #Expression Data
@@ -263,7 +266,7 @@ pheatmap(assay(vsd)[select_all,], cluster_rows=FALSE, show_rownames=FALSE, clust
 ```
 
 ##Top 500 heatmap
-Heatmap of modeled expression levels of 500 most highly expressed genes in all individuals. 
+Heatmap of modeled expression levels of 500 most highly expressed genes in all individuals.
 
 This unclustered graph shows that there are differences in expression among the more highly expressed genes, although there are no obvious broad patterns between High vs Low or Reed vs KBS.
 
@@ -321,7 +324,7 @@ pheatmap(sampleDistMatrix,
 
 ##Sample vs Sample PCA
 
-First two components of a PCA of the same normalized distance matrix used in the previous heatmap. These two vectors capture nearly 40% of the variance, but this seems to be mostly capturing Reed/KBS. 
+First two components of a PCA of the same normalized distance matrix used in the previous heatmap. These two vectors capture nearly 40% of the variance, but this seems to be mostly capturing Reed/KBS.
 
 ```{r plainPCA, echo=FALSE, fig.path=paste("../figures/",subgroup$Dataname,"/", sep=""), fig.keep="last", fig.width=11}
 vsd_df <- as.data.frame(assay(vsd)[select_all,])
@@ -331,11 +334,11 @@ cowplot::plot_grid( plotPCA(vsd, intgroup="Location"),
                     plotPCA(vsd, intgroup="Line"),
                     plotPCA(vsd, intgroup=c( "Location", "Line")),
                            align="c", ncol=2)
-                   
+
 #pca_vsd <- prcomp( vsd_df )  #index here to remove 'not_featured'
 #plot(pca_vsd$x[,1], pca_vsd$x[,2])
 
-#pca_vsd_lab <- as.data.frame( t(pca_vsd$x )) %>% 
+#pca_vsd_lab <- as.data.frame( t(pca_vsd$x )) %>%
                  # mutate(name=rownames(t(pca_vsd$x))) %>%
                  # inner_join( df )
 
@@ -371,7 +374,7 @@ plot(vsd_lda_m)
 #DESeq2
 We're using `DESeq2` to estimate differential gene expression between the high and low anther exertion lines. It estimates the dispersion of the data similarly to `edgeR`, but then normalises using 'shrinkage'; adjusting the estimate on a gene-by-gene basis by comparing the dispersion of each gene with the group-level dispersion.
 
-We have `r length(colnames(ALLTHEGENES))-1` individuals, with reads aligned to `r length(ALLTHEGENES$Genes)` gene models. 
+We have `r length(colnames(ALLTHEGENES))-1` individuals, with reads aligned to `r length(ALLTHEGENES$Genes)` gene models.
 
 ##Modeling
 `DESeq2` uses a modified design matrix that allows it do perform shrinkage analysis. This modification results in the intercept being the midpoint between the two predictors of interest, and makes the results table increasingly un-interpretable with increasing model complexity. Ideally, we would like to model expression as:
@@ -394,7 +397,7 @@ Option 1 is the preferred method of the `DESeq2` authors, but will take some ext
 Then we'll get gene lists for all four conditions. To get the high vs low genes, I'll have to take the intersection of ReedHigh vs ReedLow and KBSHigh vs KBSLow.
 
 ###Drop interaction
-Option 2 may give reasonable results, we would lose the ability to find genes that have interaction effects that cancel each other out, however we should have increased ability to detect outliers because the shrinkage analysis will work as designed. 
+Option 2 may give reasonable results, we would lose the ability to find genes that have interaction effects that cancel each other out, however we should have increased ability to detect outliers because the shrinkage analysis will work as designed.
 
 ###Use interaction
 Option 3 may also give reasonable results, however, we will lose Log2 fold shrinkage, so fold change will be over-estimated in some cases. However, this option would ensure that any interaction effects are modeled out of the final Line contrast, which may mean that we can find differentially expressed genes that would have otherwise been hidden by interactions.
@@ -413,7 +416,7 @@ This model found `r sum(results_hvl$padj < p.threshold, na.rm = TRUE)` different
 ```{r PlainSummaryplots, echo=FALSE}
 #Summary of modeled values that meet the specified adjusted p-value cutoff
 summary( results_hvl, alpha=p.threshold)
-    
+
 # Plot dispersion estimates
 plotDispEsts( raph.DES )
 ```
@@ -440,7 +443,7 @@ KBS high vs KBS low, then Reed high vs Reed low
 #Summary of modeled values that meet the specified adjusted p-value cutoff
 summary( Presults_hKvlK, alpha=p.threshold)
 summary( Presults_hRvlR, alpha=p.threshold)
-    
+
 # Plot dispersion estimates
 plotDispEsts( raphpseudo.DES )
 ```
@@ -466,7 +469,7 @@ This model found `r sum(Intresults_hvl$padj < p.threshold, na.rm = TRUE)` differ
 ```{r Intplots, echo=FALSE}
 #Summary of modeled values that meet the specified adjusted p-value cutoff
 summary( Intresults_hvl, alpha=p.threshold)
-    
+
 # Plot dispersion estimates
 plotDispEsts( raphInt.DES )
 
@@ -504,8 +507,8 @@ write.csv( results_hvl_df, paste(subgroup$outputfilenamePlain), quote=FALSE, row
 
 ggplot(results_hvl_df, aes(log2FoldChange, baseMean, label=gene_name)) +
     geom_text_repel(data=filter( results_hvl_df, baseMean > 20 & log2FoldChange > 2), aes(col=padj)) +
-    geom_point(aes(col=padj)) + 
-    labs(title = "High vs Low", x="Log 2 Fold Change", y="Base Mean") 
+    geom_point(aes(col=padj)) +
+    labs(title = "High vs Low", x="Log 2 Fold Change", y="Base Mean")
 
 
 ```
@@ -559,15 +562,15 @@ write.csv( Presults_hvl_df, paste(subgroup$outputfilenamePseudoHvL), quote=FALSE
 ```{r HighvLowReed, echo=FALSE, fig.path=paste("../figures/",subgroup$Dataname,"/", sep=""), fig.keep="last", fig.width=11}
 ggplot(Presults_hvl_df, aes(log2FoldChange_Reed, baseMean_Reed, label=gene_name)) +
     geom_text_repel(data=filter( Presults_hvl_df, baseMean_Reed > 20 & log2FoldChange_Reed > 2 ), aes(col=padj_Reed)) +
-    geom_point(aes(col=padj_Reed)) + 
-    labs(title = "High vs Low Reed", x="Log 2 Fold Change", y="Base Mean") 
+    geom_point(aes(col=padj_Reed)) +
+    labs(title = "High vs Low Reed", x="Log 2 Fold Change", y="Base Mean")
 
 ```
 
 ```{r HighvLowKBS, echo=FALSE, fig.path=paste("../figures/",subgroup$Dataname,"/", sep=""), fig.keep="last", fig.width=11}
 ggplot(Presults_hvl_df, aes(log2FoldChange_KBS, baseMean_KBS, label=gene_name)) +
     geom_text_repel(data=filter( Presults_hvl_df, baseMean_KBS > 20 & log2FoldChange_KBS > 2), aes(col=padj_KBS)) +
-    geom_point(aes(col=padj_KBS)) + 
+    geom_point(aes(col=padj_KBS)) +
     labs(title = "High vs Low KBS", x="Log 2 Fold Change", y="Base Mean")
 
 ```
@@ -607,12 +610,12 @@ write.csv( Presults_RvK_df, paste(subgroup$outputfilenamePseudoKvR), quote=FALSE
 #plot_grid(
 #ggplot(Presults_RvK_df, aes(log2FoldChange.x, baseMean.x, label=gene_name)) +
 #    geom_text_repel(data=filter( Presults_RvK_df, baseMean.y > 4500 | abs(log2FoldChange.y) > 2.5 ), #aes(col=padj.x)) +
-#    geom_point(aes(col=padj.y)) + 
+#    geom_point(aes(col=padj.y)) +
 #    labs(title = "Reed High vs KBS High", x="Log 2 Fold Change", y="Base Mean") ,
 #
 #ggplot(Presults_RvK_df, aes(log2FoldChange.y, baseMean.y, label=gene_name)) +
 #    geom_text_repel(data=filter( Presults_hvl_df, baseMean.x > 4500 | abs(log2FoldChange.x) > 2.5), #aes(col=padj.y)) +
-#    geom_point(aes(col=padj.y)) + 
+#    geom_point(aes(col=padj.y)) +
 #    labs(title = "Reed Low vs KBS Low", x="Log 2 Fold Change", y="Base Mean"))
 
 
@@ -624,7 +627,7 @@ Differentially expressed genes from the interaction model, high vs low.
 
 Intresults_hvl_df <- data.frame( Intresults_hvl )
 Intresults_hvl_df$gene_name <- row.names( Intresults_hvl )
-  
+
 Intresults_hvl_df$FC <- logratio2foldchange(Intresults_hvl_df$log2FoldChange)
 
 Intresults_hvl_df <- filter(Intresults_hvl_df, !is.na(padj))
@@ -635,8 +638,8 @@ write.csv( Intresults_hvl_df, paste(subgroup$outputfilenameInteraction), quote=F
 
 ggplot(Intresults_hvl_df, aes(log2FoldChange, baseMean, label=gene_name)) +
     geom_text_repel(data=filter( Intresults_hvl_df, baseMean > 20 & log2FoldChange > 2), aes(col=padj)) +
-    geom_point(aes(col=padj)) + 
-    labs(title = "Interaction: High vs Low", x="Log 2 Fold Change", y="Base Mean") 
+    geom_point(aes(col=padj)) +
+    labs(title = "Interaction: High vs Low", x="Log 2 Fold Change", y="Base Mean")
 
 raphIntTestLRTresults_hvl_df <- data.frame( raphIntTestLRTresults_hvl )
 raphIntTestLRTresults_hvl_df$gene_name <- row.names( raphIntTestLRTresults_hvl )
@@ -654,15 +657,15 @@ write.csv( raphIntTestLRTresults_hvl_df, paste(subgroup$outputfilenameLRTinterac
 
 ```{r MeanExpressionPlots, eval=FALSE, echo=FALSE}
 par(mfrow=c(2,1))
-plot(y = log2(results_hvl$baseMean), x =(log2(results_hvl$baseMean) - results_hvl$log2FoldChange ), 
-    ylab = "mean expression low", xlab = "mean expression high", 
+plot(y = log2(results_hvl$baseMean), x =(log2(results_hvl$baseMean) - results_hvl$log2FoldChange ),
+    ylab = "mean expression low", xlab = "mean expression high",
     main = "Anther Exertion", pch = 20, col ="grey")
 with(results_hvl_df[results_hvl_df$padj <0.05, ],
     points(y = log2(baseMean),x =(log2(baseMean) - log2FoldChange ),
     pch=20, col = "black" ))  
 abline(a=0, b=1 , col="blue")
 
-plot(y = results_hvl$log2FoldChange, x =log2(results_hvl$baseMean) , 
+plot(y = results_hvl$log2FoldChange, x =log2(results_hvl$baseMean) ,
     ylab = "log2 fold change (L/H)", xlab = "mean expression low",
     main = " MAplot selection differences in AE", pch = 20, col ="grey")
 with(results_hvl_df[results_hvl_df$padj <0.05, ],
@@ -685,7 +688,7 @@ dplyr::select(Intresults_hvl_df, gene_name, log2FoldChange, padj) %>% arrange(pa
 
 ```
 
-and interaction model: 
+and interaction model:
 
 ```{r, echo=FALSE}
 
@@ -724,7 +727,7 @@ deseq2_results_rvk <- results( raph.DES, contrast=list( "LocationReed", "Locatio
 deseq2_results_hvl$threshold <- as.logical( deseq2_results_hvl$padj < p.threshold )
     deseq2_genes_hvl <- row.names( deseq2_results_hvl )[ which( deseq2_results_hvl$threshold )]
 
-    
+
 
 deseq2_results_rvk_df <- data.frame( deseq2_results_rvk )
   deseq2_results_rvk_df$gene_name <- row.names( deseq2_results_rvk )
@@ -753,5 +756,3 @@ Jeong2016 <- c(38732,19600,371.6,46514, "Yes")
 
 as.data.frame(cbind(Measure,Moghe2014,Kitashiba2014,Mitsui2015,Jeong2016))
 ```
-
-

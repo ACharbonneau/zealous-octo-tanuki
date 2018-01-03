@@ -24,8 +24,10 @@ cd ${PBS_O_WORKDIR} || exit
 mkdir ${PBS_JOBNAME} #make a folder for each genome you're mapping to
 
 source ~/.bash_profile
+module load GNU/4.9
+module load GMAP/20160609
 
-#gmap_build -d ${PBS_JOBNAME} -k 15 ${genome}
+gmap_build -d ${PBS_JOBNAME} -k 15 ${genome} -D Indicies/
 
 #Launch mapper
 rc=$?

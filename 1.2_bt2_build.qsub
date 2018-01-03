@@ -25,11 +25,11 @@ mkdir ${PBS_JOBNAME} #make a folder for each genome you're mapping to
 
 module load bowtie2/2.2.6
 
-bowtie2-build ${genome} BowtieIndicies/${PBS_JOBNAME} #build index
+bowtie2-build ${genome} Indicies/${PBS_JOBNAME} #build index
 
 #Launch mapper
 rc=$?
 
 if [[ $rc = 0 ]]
-  then qsub zealous-octo-tanuki/1.3_bt2_mapping.qsub -N ${PBS_JOBNAME}.map -o ${PBS_JOBNAME}/ -v genome="${genome}",index="../BowtieIndicies/${PBS_JOBNAME}",gff="${gff}",bsname="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
+  then qsub zealous-octo-tanuki/1.3_bt2_mapping.qsub -N ${PBS_JOBNAME}.map -o ${PBS_JOBNAME}/ -v genome="${genome}",index="../Indicies/${PBS_JOBNAME}",gff="${gff}",bsname="${PBS_JOBNAME}",gffi="${gffi}",exon="${exon}",stranded="${stranded}"
 fi

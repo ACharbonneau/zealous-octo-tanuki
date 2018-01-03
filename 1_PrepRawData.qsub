@@ -46,7 +46,7 @@ mv *.fna OriginalFiles/
 mv *.qual OriginalFiles/
 rm *.fastq
 mkdir fastqc
-mkdir BowtieIndicies
+mkdir Indicies
 mkdir BUSCO
 
 echo "5. Get metadata"

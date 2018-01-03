@@ -9,7 +9,7 @@ FastQC 0.11.3
 
 bowtie2 2.2.6
 
-GMAP version 2016-05-01 (installed via linuxbrew)
+GMAP version 2016-06-09
 
 SAMTools 1.2
 
