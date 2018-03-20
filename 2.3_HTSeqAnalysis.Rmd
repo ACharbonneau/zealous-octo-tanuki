@@ -1,13 +1,20 @@
 ---
 title: "AE_RNAseq"
 author: "Amanda Charbonneau"
-date: "March 30, 2016"
+date: '`r Sys.time()`'
 output:
   html_document:
+    code_folding: hide
+    collapsed: no
+    df_print: paged
     number_sections: yes
+    theme: cerulean
     toc: yes
-    toc_depth: 4
-
+    toc_depth: 5
+    toc_float: yes
+  html_notebook:
+    toc: yes
+    toc_depth: 5
 ---
 
 #Global parameters for modeling
@@ -33,16 +40,24 @@ packages<-function(x){
   }
 }
 
+bioconductors <- function(x){
+    x<- as.character(match.call()[[2]])
+    if (!require(x, character.only = TRUE)){
+      source("https://bioconductor.org/biocLite.R")
+      biocLite(pkgs=x)
+      require(x, character.only = TRUE)
+    }
+}
+
 packages(MASS)
 packages(ggplot2)
-packages(DESeq2)
 packages(gtools)
 packages(pheatmap)
 packages(cowplot)
 packages(RColorBrewer)
 packages(dplyr)
 packages(ggrepel)
-
+bioconductors(DESeq2)
 
 ```
 
@@ -51,6 +66,12 @@ packages(ggrepel)
 sessionInfo()
 
 #Import all of the count files from mapping AE reads to a single genome
+
+## To run interactively, you need to load the inputfiles manually, 
+## run the following two commented lines:
+
+## Inputfiles <- read.csv("../metadata/HTanalysisInputForR.csv")
+##Mapping <- "AT_2016_GS"
 
 subgroup <- Inputfiles[ Inputfiles$Dataname == Mapping, ]
 
@@ -188,9 +209,66 @@ raphIntTestLRT.DES  <- DESeq( raphInt.DES, test="LRT", reduced=~FlowCell + Line)
 ```
 
 
-```{r contrasts with DESeq2, echo=FALSE, results='hide', include=FALSE}
+```{r HighLow contrasts with DESeq2, echo=FALSE, results='hide', include=FALSE}
 
 ## DESeq2 - High vs Low, NO interaction
+## contrast=c(column, numerator, denominator)
+
+results_hvl <- results( raph.DES, contrast=c("Line", "High", "Low"),
+                        cooksCutoff=FALSE, independentFiltering=TRUE,
+                        addMLE=TRUE, pAdjustMethod="BH", alpha = p.threshold)
+
+results_hvl$threshold <- as.logical( results_hvl$padj < p.threshold )
+
+results_hvl <- results_hvl[order(results_hvl$padj),]   
+
+summary(results_hvl, alpha= p.threshold)
+
+## DESeq2 - High vs Low, with PSEUDO interaction
+## contrast=c(column, numerator, denominator)
+
+Presults_hRvhK <- results( raphpseudo.DES, contrast=c("LocationLine", "KBSHigh", "ReedHigh"), cooksCutoff=FALSE, independentFiltering=TRUE, addMLE=TRUE, pAdjustMethod="BH", alpha = p.threshold)
+
+Presults_hKvlK <- results( raphpseudo.DES, contrast=c("LocationLine", "KBSHigh", "KBSLow"), cooksCutoff=FALSE, independentFiltering=TRUE, addMLE=TRUE, pAdjustMethod="BH", alpha = p.threshold)
+
+Presults_lRvlK <- results( raphpseudo.DES, contrast=c("LocationLine", "KBSLow", "ReedLow"), cooksCutoff=FALSE, independentFiltering=TRUE, addMLE=TRUE, pAdjustMethod="BH", alpha = p.threshold)
+
+Presults_hRvlR <- results( raphpseudo.DES, contrast=c("LocationLine", "ReedHigh", "ReedLow"), cooksCutoff=FALSE, independentFiltering=TRUE, addMLE=TRUE, pAdjustMethod="BH", alpha = p.threshold)
+
+Presults_hRvlK <- results( raphpseudo.DES, contrast=c("LocationLine", "ReedHigh", "KBSLow"), cooksCutoff=FALSE, independentFiltering=TRUE, addMLE=TRUE, pAdjustMethod="BH", alpha = p.threshold)
+
+Presults_hKvlR <- results( raphpseudo.DES, contrast=c("LocationLine", "KBSHigh", "ReedLow"), cooksCutoff=FALSE, independentFiltering=TRUE, addMLE=TRUE, pAdjustMethod="BH", alpha = p.threshold)
+
+## DESeq2 - High vs Low, WITH interaction
+## contrast=c(column, numerator, denominator)
+Intresults_hvl <- results( raphInt.DES, contrast=c("Line", "High", "Low"),
+                           cooksCutoff=FALSE, independentFiltering=TRUE,
+                           pAdjustMethod="BH", alpha = p.threshold )
+# addMLE=TRUE, Error in results(raphInt.DES, contrast = c("Line", "High", "Low"), cooksCutoff = FALSE, addMLE=TRUE is only for when a beta prior was used. otherwise, the log2 fold changes are already MLE
+
+Intresults_hvl$threshold <- as.logical( Intresults_hvl$padj < p.threshold )
+
+Intresults_hvl <- Intresults_hvl[order(Intresults_hvl$padj),]   
+
+summary(Intresults_hvl, alpha= p.threshold)
+
+
+raphIntTestLRTresults_hvl <- results( raphIntTestLRT.DES,
+                                      contrast=c("Line", "High", "Low"),
+                                      cooksCutoff=FALSE, independentFiltering=TRUE,
+                                      pAdjustMethod="BH", alpha = p.threshold )
+
+raphIntTestLRTresults_hvl$threshold <- as.logical( raphIntTestLRTresults_hvl$padj < p.threshold )
+raphIntTestLRTresults_hvl <- raphIntTestLRTresults_hvl[order(raphIntTestLRTresults_hvl$padj),]   
+
+summary(raphIntTestLRTresults_hvl, alpha= p.threshold)
+
+```
+
+
+```{r Reed/KBS contrasts with DESeq2, echo=FALSE, results='hide', include=FALSE}
+
+## DESeq2 - Reed vs KBS, NO interaction
 ## contrast=c(column, numerator, denominator)
 
 results_hvl <- results( raph.DES, contrast=c("Line", "High", "Low"),
