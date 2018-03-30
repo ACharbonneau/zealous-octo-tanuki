@@ -11,13 +11,8 @@ packages<-function(x){
 
 packages(ggplot2)
 packages(dplyr)
+packages(stringr)
 #packages(GGally)
-
-totalreads <- read.table("../metadata/totalreads.txt", sep=":")
-
-totalreads$V1 <- sub(".fastq.edit", "", totalreads$V1)
-
-colnames(totalreads) <- c("X", "TotalReads")
 
 folders <- list.dirs(file.path("../DEseqOutput"), full.names = F, recursive = F)
 
@@ -28,21 +23,17 @@ ALLTHEFILES$Run <- folders[1]
 
 for( X in 2:length(mappedfiles)){
   tempfile <- read.csv(paste("../DEseqOutput/", folders[X], "/", mappedfiles[X], sep = ""))
-  if(!("UnmappedReads" %in% colnames(tempfile)))
-  { tempfile$UnmappedReads=0 }
   tempfile$Run <- folders[X]
   ALLTHEFILES <- rbind(ALLTHEFILES, tempfile)
 }
 
-ALLTHEFILES$UnmappedReads <- as.integer(ALLTHEFILES$UnmappedReads)
 ALLTHEFILES$Run <- as.factor(ALLTHEFILES$Run)
 
-ALLTHEFILES <- inner_join(ALLTHEFILES, totalreads)
+metadata <- as.data.frame(cbind(levels(ALLTHEFILES$Run)))
 
-metadata <- data.frame(cbind(levels(ALLTHEFILES$Run), rep(c("BT", "GS"), 5, each=1),
-      rep(c("Jeong2016", "Kitashiba2014", "Mitsui2015", "Moghe2014", "RR3_NY_EST"), 2, each=2)))
+metadata[,2:3] <-  t(as.data.frame(strsplit(as.character(metadata[,1]), split="_")))                          
 
-colnames(metadata) <- c("Run", "Mapper", "Genome")
+colnames(metadata) <- c("Run", "Genome", "Mapper")
 
 ALLTHEFILES <- inner_join(ALLTHEFILES, metadata)
 
