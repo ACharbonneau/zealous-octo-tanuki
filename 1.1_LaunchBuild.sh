@@ -53,9 +53,9 @@ qsub zealous-octo-tanuki/1.2_gmap_build.qsub -N Moghe2014_GS -v genome=/mnt/rese
 #Raphanistrum transcriptome RR3_NY
 #ESTs
 
-qsub zealous-octo-tanuki/1.2_bt2_build.qsub -N RR3NYEST_BT -v genome=/mnt/research/radishGenomics/AnalysisOfSequencingFiles/EST_7pops/RR3_NY/1000017.est,gff=NA,gffi="NA",exon="NA",stranded="NA"
+qsub zealous-octo-tanuki/1.2_bt2_build.qsub -N RR3NYEST_BT -v genome=/mnt/research/radishGenomics/AnalysisOfSequencingFiles/EST_7pops/RR3_NY/1000017.fa,gff=NA,gffi="NA",exon="NA",stranded="NA"
 
-qsub zealous-octo-tanuki/1.2_gmap_build.qsub -N RR3NYEST_GS -v genome=/mnt/research/radishGenomics/AnalysisOfSequencingFiles/EST_7pops/RR3_NY/1000017.est,gff=NA,gffi="NA",exon="NA",stranded="NA"
+qsub zealous-octo-tanuki/1.2_gmap_build.qsub -N RR3NYEST_GS -v genome=/mnt/research/radishGenomics/AnalysisOfSequencingFiles/EST_7pops/RR3_NY/1000017.fa,gff=NA,gffi="NA",exon="NA",stranded="NA"
 
 #Brassica oleracea UNIGENES, unique. ftp://ftp.ncbi.nih.gov/repository/UniGene/
 #Tack thinks this is the best thing to map to

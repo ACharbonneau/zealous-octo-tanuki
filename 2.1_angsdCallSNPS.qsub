@@ -1,0 +1,36 @@
+#!/bin/sh -login
+#PBS -j oe
+#PBS -l nodes=1:ppn=28,walltime=04:00:00,mem=100gb
+#PBS -m a
+#PBS -l feature='intel16'
+
+
+shopt -s expand_aliases
+cd $PBS_O_WORKDIR || exit
+module load powertools
+
+module load ANGSD/0.911
+
+cd ${PBS_O_WORKDIR} || exit
+
+subset=`basename ${subset_list} _list`
+
+mkdir ${subset}_angsd_${dt}
+
+
+#angsd -bam ${subset_list} -domaf 1 -domajorminor 1 -gl 1 -snp_pval 1e-2  -P 5 -dosnpstat 1 -hwe_pval 1e-2 -out ${subset}_snp_angsd
+
+# 4 hours * 60 minutes * 6 seconds - 60 seconds * 5 minutes
+export BLCR_WAIT_SEC=$(( 4 * 60 * 60 - 60 * 5 ))
+#export BLCR_WAIT_SEC=$(( 20 * 60 - 60 * 5 ))
+export PBS_JOBSCRIPT="$0"
+export output="${PBS_JOBNAME}_output.txt"
+export checkpoint="${PBS_JOBNAME}_checkfile.blcr"
+echo "Waiting ${BLCR_WAIT_SEC} seconds to run ${PBS_JOBSCRIPT}"
+
+if [ ! -f checkfile.blcr ]
+then
+  echo "Running for the first time"
+fi
+
+longjob angsd -P 28  -bam ${subset_list} -GL 1 -doCounts 1 -doMaf 1 -doDepth 1 -doQsDist 1 -doGlf 1 -doMajorMinor 1 -doGeno 8 -doPost 1 -minQ 15 -minMapQ 20 -minMaf 0.05 -uniqueOnly 1 -remove_bads 1 -setMaxDepthInd 100 -minInd  ${n80} -out ${subset}_angsd_${dt}/${subset}_angsd

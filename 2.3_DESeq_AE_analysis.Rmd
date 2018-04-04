@@ -1,0 +1,674 @@
+---
+title: "DESeq_AE"
+author: "Amanda Charbonneau"
+date: "3/25/2018"
+output:
+  html_document:
+    code_folding: hide
+    collapsed: no
+    df_print: paged
+    number_sections: yes
+    theme: cerulean
+    toc: yes
+    toc_depth: 5
+    toc_float: yes
+  html_notebook:
+    toc: yes
+    toc_depth: 5
+---
+#Global parameters for modeling
+
+```{r GlobalVariables}
+
+#Setting a reasonable p-value threshold to be used throughout
+
+p_cutoff <- 0.1
+
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+FC_cutoff <- log2(1.1)
+
+
+#Reference level is KBSLow or Low
+```
+
+
+
+```{r LoadPackages, results='hide', include=FALSE}
+
+# Install function for packages    
+packages<-function(x){
+  x<-as.character(match.call()[[2]])
+  if (!require(x,character.only=TRUE)){
+    install.packages(pkgs=x,repos="http://cran.r-project.org")
+    require(x,character.only=TRUE)
+  }
+}
+
+bioconductors <- function(x){
+    x<- as.character(match.call()[[2]])
+    if (!require(x, character.only = TRUE)){
+      source("https://bioconductor.org/biocLite.R")
+      biocLite(pkgs=x)
+      require(x, character.only = TRUE)
+    }
+}
+
+packages(MASS)
+packages(ggplot2)
+packages(gtools)
+packages(pheatmap)
+packages(cowplot)
+packages(RColorBrewer)
+packages(dplyr)
+packages(ggrepel)
+bioconductors(DESeq2)
+packages(PoiClaClu)
+
+```
+
+
+```{r Data, }
+sessionInfo()
+
+#Import all of the count files from mapping AE reads to a single genome
+
+## To run interactively, you need to load the inputfiles manually, 
+## run the following two commented lines:
+
+# Inputfiles <- read.csv("../metadata/HTanalysisInputForR.csv")
+# Mapping <- "AT2016_BT"
+
+subgroup <- Inputfiles[ Inputfiles$Dataname == Mapping, ]
+
+ALLTHEFILES <- list.files(file.path(subgroup$countsDir), pattern = "*.counts.txt")
+
+meta <- read.csv("../metadata/metadata.csv")
+
+row.names(meta) <- meta[,1]
+
+totalreads <- read.table("../metadata/totalreads.txt", sep=":")
+
+```
+
+
+```{r Merge Gene Counts, include=FALSE, results='hide'}
+
+
+File_Num <- length(ALLTHEFILES)
+
+#The values in the matrix should be un-normalized counts or estimated counts of sequencing reads (for single-end RNA-seq) or fragments (for paired-end RNA-seq). https://bioconductor.org/packages/3.7/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#htseq
+
+# Make first dataset into starting dataframe
+ALLTHEGENES <- read.csv(paste(subgroup$countsDir, "/", ALLTHEFILES[ 1 ], sep=""),
+                        sep = "\t", header = F,
+                        col.names = c("Genes", regmatches(ALLTHEFILES[ 1 ], regexec("[1-6]_2008[0-9]+_[0-9]_[A-Z]+[0-9]", ALLTHEFILES[ 1 ]))))
+
+# Remove X from name of column 2
+colnames(ALLTHEGENES) <- c("Genes", substring(colnames(ALLTHEGENES[2]),2))
+
+row.names(ALLTHEGENES) <- ALLTHEGENES[,1]
+
+# In a loop, read in each dataset, then merge it into the starting dataframe
+
+for( X in c( 2:File_Num )){ #start at 2 because first dataset already in
+
+  File_Search <- regexec("[1-6]_2008[0-9]+_[0-9]_[A-Z]+[0-9]", ALLTHEFILES[ X ])
+  File_Name <- regmatches(ALLTHEFILES[ X ], File_Search)
+  Temp_File <- read.csv(paste(subgroup$countsDir, "/", ALLTHEFILES[ X ], sep=""), sep = "\t", header = F)
+  colnames(Temp_File) <- c("Genes", File_Name)
+  ALLTHEGENES <- inner_join( ALLTHEGENES, Temp_File )
+
+}
+
+no_feature <- colSums(dplyr::filter(ALLTHEGENES, Genes == "__no_feature" |
+                               Genes == "__ambiguous" |
+                               Genes == "__too_low_aQual" |
+                               Genes == "__not_aligned" |
+                               Genes == "__alignment_not_unique" )[,-1])
+
+#Filter out unmapped reads
+
+ALLTHEGENES <- dplyr::filter(ALLTHEGENES, Genes != "__no_feature" &
+                               Genes != "__ambiguous" &
+                               Genes != "__too_low_aQual" &
+                               Genes != "__not_aligned" &
+                               Genes != "__alignment_not_unique" )
+
+
+row.names(ALLTHEGENES) <- ALLTHEGENES[,1]
+
+colnames(totalreads) <- c("Sample", "Total")
+
+totalreads$Sample <- gsub( ".fastq.edit", "", totalreads$Sample ) 
+
+genecounts <- as.data.frame(colSums(ALLTHEGENES[2:(File_Num+1)]))
+
+
+genecounts <- cbind(genecounts, t(no_feature)[1:35])
+genecounts$Sample <- rownames(genecounts)
+
+genecounts <- full_join(totalreads, genecounts)
+
+colnames(genecounts) <- c("Sample", "TotalReads", "MappedReads", "BadlymappedReads")
+
+write.csv(genecounts, paste(subgroup$outputfilenameCounts))
+
+```
+
+
+```{r modeling with DESeq2, results='hide', include=FALSE}
+
+# DESeq2 uses the `expressionset` data format, so the data needs to be reformatted to fit:
+
+raph.exprs <-  dplyr::select(ALLTHEGENES, contains("2008"))
+
+raph.groups <- dplyr::select(meta, FlowCell, Date, SampleInFC, ExID, Location, Line, SampleInLine)
+
+raph.groups$FlowCell <- factor(raph.groups$FlowCell)
+
+raph.groups$LocationLine <- factor(paste(raph.groups$Location, raph.groups$Line, sep=""))
+
+raph.groups$LocationLine <- relevel(raph.groups$LocationLine, ref="KBSLow")
+
+raph.groups$Line <- relevel(raph.groups$Line, ref="Low")
+
+raph.groups$Location <- relevel(raph.groups$Location, ref="KBS")
+
+
+
+raph.meta <- data.frame( description=c( "Sequencing Flowcell", "Sequencing Date", "Sample number in flowcell", "Sample Name", "Growth location of selection line", "High or Low selection", "Sample number in selection line", "PsuedoInteraction") )
+
+raph.est <- ExpressionSet( assayData=as.matrix(raph.exprs),
+                           phenoData=new( "AnnotatedDataFrame",
+                           data=raph.groups, varMetadata=raph.meta ))
+```
+
+
+```{r NoInteractionDESeq2, results='hide', include=FALSE}
+
+# Create DESeq2 datasets
+## One with no interactions
+raph.DES <- DESeqDataSetFromMatrix(countData = exprs( raph.est ), 
+                    colData = pData( raph.est ), design = ~ FlowCell + Location + Line )
+
+raph.DES <- DESeq( raph.DES )
+
+```
+
+
+
+```{r PseudoInteractions DESeq2, results='hide', include=FALSE}
+## One with pseudointeractions
+
+raphpseudo.DES <- DESeqDataSetFromMatrix(countData = exprs( raph.est ), 
+                    colData = pData( raph.est ), design = ~ FlowCell + LocationLine )
+
+raphpseudo.DES <- DESeq( raphpseudo.DES )
+
+#Note: In order to benefit from the default settings of the package, you should put the variable of interest at the end of the formula and make sure the control level is the first level. https://bioconductor.org/packages/3.7/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#htseq
+
+#With no additional arguments to results, the log2 fold change and Wald test p value will be for the last variable in the design formula, and if this is a factor, the comparison will be the last level of this variable over the reference level (see previous note on factor levels). However, the order of the variables of the design do not matter so long as the user specifies the comparison to build a results table for, using the name or contrast arguments of results. https://bioconductor.org/packages/3.7/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#htseq
+
+```
+
+#Expression Data
+
+Some exploratory plots of un-modeled gene counts.
+
+## Mapping rates `r Mapping`
+
+These are the raw mapping counts for `r Mapping`. The first column "TotalReads" is the number of reads for that individual from the fastq file. "MappedReads" is the number that are usable for differential expression analysis, that is, ones that mapped uniquely to an exon with a mapping quality >10. The third column "BadlymappedReads" is the number of reads that are unusable, and is the combined total of reads that the mapper assigned as: no_feature, ambiguous, too_low_aQual, not_aligned and alignment_not_unique. PercentUseable is MappedReads/TotalReads * 100
+
+Note that the MappedReads + BadlymappedReads won't sum to the total. This is because I'm getting the BadlymappedReads from the HTseq output, not from the mapper. So, the number of reads that just didn't align to anything isn't included as BadlymappedReads. 
+
+```{r}
+
+genecounts$PercentUseable <- round(genecounts$MappedReads/genecounts$TotalReads, 3) * 100
+
+genecounts
+```
+
+##All by All heatmap
+
+In all the following heatmaps, samples/genes are clustered by Euclidean distance of rlog-transformed gene counts (this removed the dependence of variance on mean, and flattens out the variance across the data set, which makes the heatmaps a little easier to read). Transformed counts were *not* used for the DESeq2 analysis.
+
+A heatmap of expression levels for all genes in all individuals shows that the overall expression is very similar across individuals, and there is more separation between KBS and Reed than High and Low in overall expression.
+
+```{r PlainLineHeatmap, fig.path=paste("../figures/",subgroup$Dataname,"/", sep=""), fig.keep="last", fig.width=11}
+#A useful first step in an RNA-seq analysis is often to assess overall similarity between samples: Which samples are similar to each other, which are different? Does this fit to the expectation from the experiment’s design? We use the R function dist to calculate the Euclidean distance between samples. To ensure we have a roughly equal contribution from all genes, we use it on the rlog-transformed data. We need to transpose the matrix of values using t, because the dist function expects the different samples to be rows of its argument, and different dimensions (here, genes) to be columns. 
+#**Note that the two transformations offered by DESeq2 are provided for applications other than differential testing.** For differential testing we recommend the DESeq function applied to raw counts, as described later in this workflow, which also takes into account the dependence of the variance of counts on the mean value during the dispersion estimation step. The function rlog returns an object based on the SummarizedExperiment class that contains the rlog-transformed values in its assay slot. http://www.bioconductor.org/help/workflows/rnaseqGene/#the-deseqdataset-object-sample-information-and-the-design-formula
+
+
+rld <- rlog(raphpseudo.DES, blind = FALSE)
+sampleDists <- dist(t(assay(rld)))
+df <- as.data.frame(colData(raphpseudo.DES)[,c("Line","Location")])
+sampleDistMatrix <- as.matrix( sampleDists )
+colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
+pheatmap(sampleDistMatrix,
+         clustering_distance_rows = sampleDists,
+         clustering_distance_cols = sampleDists,
+         col = colors, annotation_col=df, show_rownames=FALSE)
+
+```
+
+##Top 500 heatmap
+
+However, the top 500 most highly expressed genes cluster mostly as you would expect.
+
+```{r MiniPlainLineHeatmap, echo=FALSE, fig.path=paste("../figures/",subgroup$Dataname,"/", sep=""), fig.keep="last", fig.width=11}
+
+select500 <- order(rowMeans(counts(raph.DES,normalized=TRUE)),decreasing=TRUE)[1:500]
+
+pheatmap(assay(rld)[select500,], show_rownames=F,clustering_distance_rows = sampleDists,
+         clustering_distance_cols = sampleDists, annotation_col=df)
+
+
+```
+
+## PCA for overall expression
+
+Unsurprisingly, a PCA based on overall expression shows a very similar pattern. Reed and KBS separate  pretty cleanly from one another, however the High and Low lines are indistinguishable.
+
+
+```{r plainPCA, fig.path=paste("../figures/",subgroup$Dataname,"/", sep=""), fig.keep="last", fig.width=11}
+
+
+cowplot::plot_grid( plotPCA(rld, intgroup="Location"),
+                    plotPCA(rld, intgroup="Line"),
+                    plotPCA(rld, intgroup=c( "Location", "Line")),
+                           align="c", ncol=2)
+
+```
+
+```{r, eval=FALSE, }
+baseMean, is a just the average of the normalized count values, divided by the size factors, taken over all samples
+The column log2FoldChange is the effect size estimate. It tells us how much the gene’s expression seems to have changed due to treatment with dexamethasone in comparison to untreated samples. This value is reported on a logarithmic scale to base 2: for example, a log2 fold change of 1.5 means that the gene’s expression is increased by a multiplicative factor of 21.5≈2.82.
+lfcSE, the standard error estimate for the log2 fold change estimate.
+stat=wald statistic
+DESeq2 performs for each gene a hypothesis test to see whether evidence is sufficient to decide against the null hypothesis that there is zero effect of the treatment on the gene and that the observed difference between treatment and control was merely caused by experimental variability (i.e., the type of variability that you can expect between different samples in the same treatment group). As usual in statistics, the result of this test is reported as a p value, and it is found in the column pvalue. Remember that a p value indicates the probability that a fold change as strong as the observed one, or even stronger, would be seen under the situation described by the null hypothesis.
+DESeq2 uses the Benjamini-Hochberg (BH) adjustment (Benjamini and Hochberg 1995) as implemented in the base R p.adjust function; in brief, this method calculates for each gene an adjusted p value that answers the following question: if one called significant all genes with an adjusted p value less than or equal to this gene’s adjusted p value threshold, what would be the fraction of false positives (the false discovery rate, FDR) among them, in the sense of the calculation outlined above? These values, called the BH-adjusted p values, are given in the column padj of the res object.
+
+
+The DESeq2 software automatically performs independent filtering that maximizes the number of genes with adjusted p value less than a critical value (by default, alpha is set to 0.1). This automatic independent filtering is performed by, and can be controlled by, the results function.
+
+
+The lfcThreshold isn't doing what you think it is doing. You could hypothetically do what you have done to get the 495 genes, which is to do a post hoc filtering on the fold changes. The problem with that is you have now destroyed any meaning for your p-values, which were testing for evidence that the fold change is different from zero.
+
+In other words, a p-value is a test where you compare the range of Wald statistics you would expect to get if there were no differences between your groups. There will still be variation due to sampling, so you will by happenstance get some large statistics, and the p-value tells you the long run probability of seeing your observed result under the null. In the first case, the null distribution was one where the means are identical. Since your p-value was based on the null of no differences, adding in an extra criterion invalidates the original meaning of the p-value (and any multiplicity adjustment you might then make).
+
+If you specify the lfcThreshold, you incorporate the fold change criterion into the Wald statistic, and are now testing your observed result against the values you would expect under the null distribution where the difference between the two groups is no larger than the lfc you have specified. This is a much more conservative threshold, and you should expect far fewer genes.
+
+An alternative way to think about the difference is to note that a post hoc fold change criterion tells you that the fold change between your samples is greater than a certain value, but using lfcThreshold tests the probability that the underlying population fold change is greater than that value, which is entirely different (and what you really want to be testing).
+
+Anyway, you should in general use something smaller like 1, or 0.585 (representing a 2-fold or 1.5-fold difference), rather than something massive like an lfcThreshold of 2. https://support.bioconductor.org/p/101504/
+```
+
+# DESeq2 Overview
+We're using `DESeq2` to estimate differential gene expression between the high and low anther exertion lines, and between Reed and KBS. `DESeq2` estimates the dispersion of the data similarly to `edgeR`, but then normalizes using 'shrinkage'; adjusting the estimate on a gene-by-gene basis by comparing the dispersion of each gene with the group-level dispersion.
+
+We have `r length(colnames(ALLTHEGENES))-1` individuals, with reads aligned to `r length(ALLTHEGENES$Genes)` gene models.
+
+## Modeling
+`DESeq2` uses a modified design matrix that allows it do perform shrinkage analysis. This modification results in the intercept being the midpoint between the two predictors of interest, and makes the results table increasingly un-interpretable with increasing model complexity. Ideally, for the difference between High and Low lines, we would like to model expression as:
+
+`~ Location:Line + FlowCell +  Line`
+
+Where Line (High or Low) is the predictor of interest, and the effects of FlowCell and any interaction between Line and Location is averaged out. Due to the experimental setup, FlowCell is perfectly confounded with the date of the sequencing run and accounts for differences due to sequencing runs. Location*Line accounts for any interactions between selection line and replicate (Reed vs KBS).
+
+Unfortunately, we cannot run this model *and* estimate Log2 fold change shrinkage. Essentially, the way `DESeq2` is written, the modified model matrix can't handle interaction terms. This is partially just a problem of interpretation, the model will actually run, but the output is incomprehensible, but also mathematical, as the model is now attempting to shrink the group mean estimates to zero rather than trying to shrink the estimated differences to zero. There are three possible solutions to this:
+
+  1. Make a pseudo-interaction term to call directly
+  2. Drop the interaction term
+  3. Use the interaction term, and revert to standard model matrices
+
+
+### Psuedo-interaction  
+Option 1 is the preferred method of the `DESeq2` authors, but will take some extra processing for our dataset. If we make a new, four level factor that is ReedHigh, ReedLow, KBSHigh, KBSLow to look for interaction effects, and run the model:
+
+`~ Flowcell + LocationLine`
+
+Then we'll get gene lists for all four conditions. To get the high vs low genes, I'll have to take the intersection of ReedHigh vs ReedLow and KBSHigh vs KBSLow.
+
+### No interaction
+Option 2 may give reasonable results, however we would lose the ability to find genes that have interaction effects that cancel each other out, however we should have increased ability to detect outliers because the shrinkage analysis will work as designed.
+
+`~ Flowcell + Location + Line`
+
+### Use interaction
+In theory, Option 3 may also give reasonable results, and this option would ensure that any interaction effects are modeled out of the final Line contrast, which may mean that we can find differentially expressed genes that would have otherwise been hidden by interactions. However, in practice, we will lose Log2 fold shrinkage, so fold change will be over-estimated in some cases. Our data is low depth and noisy that not using a shrinkage analysis will have more false positives than we can realistically deal with.
+
+
+```{r HighLow contrasts with DESeq2, results='hide', include=FALSE}
+
+
+## DESeq2 - High vs Low, NO interaction
+## contrast=c(column, numerator, denominator)
+## Defaults: independentFiltering=TRUE
+##log2(1.5) = 0.5849625
+
+results_hvl_11 <- results( raph.DES, contrast=c("Line", "High", "Low"),
+                        lfcThreshold=FC_cutoff, altHypothesis = "greaterAbs", independentFiltering=TRUE)
+
+results_hvl_0 <- results( raph.DES, contrast=c("Line", "High", "Low"),
+                        independentFiltering=TRUE)
+
+results_hvl_0_Ordered <- subset(as.data.frame(results_hvl_0)[order(results_hvl_0$padj),], padj < p_cutoff)
+
+write.csv(results_hvl_0_Ordered, paste(subgroup$outputfilenamePlainHvL0), quote=FALSE)
+
+results_hvl_11_Ordered <- subset(as.data.frame(results_hvl_11)[order(results_hvl_11$padj),], padj < p_cutoff)
+
+write.csv(results_hvl_11_Ordered, paste(subgroup$outputfilenamePlainHvL11), quote=FALSE)
+
+
+## DESeq2 - High vs Low, with PSEUDO interaction
+## contrast=c(column, numerator, denominator)
+
+hKvlK_hvl_11 <- results( raphpseudo.DES, contrast=c("LocationLine", "KBSHigh", "KBSLow"),
+                        lfcThreshold=FC_cutoff, altHypothesis = "greaterAbs", independentFiltering=TRUE)
+
+hKvlK_hvl_0 <- results( raphpseudo.DES, contrast=c("LocationLine", "KBSHigh", "KBSLow"),
+                        independentFiltering=TRUE)
+
+hKvlK_hvl_0_Ordered <- subset(as.data.frame(hKvlK_hvl_0)[order(hKvlK_hvl_0$padj),], padj < p_cutoff)
+
+write.csv(hKvlK_hvl_0_Ordered, paste(subgroup$outputfilenamePseudoKBSHvL0), quote=FALSE)
+
+hKvlK_hvl_11_Ordered <- subset(as.data.frame(hKvlK_hvl_11)[order(hKvlK_hvl_11$padj),], padj < p_cutoff)
+
+write.csv(hKvlK_hvl_11_Ordered, paste(subgroup$outputfilenamePseudoKBSHvL11), quote=FALSE)
+
+
+
+hRvlR_hvl_11 <- results( raphpseudo.DES, contrast=c("LocationLine", "ReedHigh", "ReedLow"),
+                        lfcThreshold=FC_cutoff, altHypothesis = "greaterAbs", independentFiltering=TRUE)
+
+hRvlR_hvl_0 <- results( raphpseudo.DES, contrast=c("LocationLine", "ReedHigh", "ReedLow"),
+                        independentFiltering=TRUE)
+
+hRvlR_hvl_0_Ordered <- subset(as.data.frame(hRvlR_hvl_0)[order(hRvlR_hvl_0$padj),], padj < p_cutoff)
+
+write.csv(hRvlR_hvl_0_Ordered, paste(subgroup$outputfilenamePseudoReedHvL0), quote=FALSE)
+
+hRvlR_hvl_11_Ordered <- subset(as.data.frame(hRvlR_hvl_11)[order(hRvlR_hvl_11$padj),], padj < p_cutoff)
+
+write.csv(hRvlR_hvl_11_Ordered, paste(subgroup$outputfilenamePseudoReedHvL11), quote=FALSE)
+
+## Make Join and antijoin lists for pseudo model
+
+
+hKvlK_hvl_0_Ordered$gene <- rownames(hKvlK_hvl_0_Ordered)
+hRvlR_hvl_0_Ordered$gene <- rownames(hRvlR_hvl_0_Ordered)
+hKvlK_hvl_11_Ordered$gene <- rownames(hKvlK_hvl_11_Ordered)
+hRvlR_hvl_11_Ordered$gene <- rownames(hRvlR_hvl_11_Ordered)
+
+join_hvl_0 <- inner_join(hKvlK_hvl_0_Ordered, hRvlR_hvl_0_Ordered, by= c("gene"="gene") ) 
+
+join_hvl_11 <- inner_join(hKvlK_hvl_11_Ordered, hRvlR_hvl_11_Ordered, by= c("gene"="gene"))
+
+colnames(join_hvl_0) <- c("baseMean.KBS", "log2FoldChange.KBS", "lfcSE.KBS", "stat.KBS", "pvalue.KBS", "padj.KBS", "gene", "baseMean.Reed", "log2FoldChange.Reed","lfcSE.Reed", "stat.Reed", "pvalue.Reed", "padj.Reed")
+
+colnames(join_hvl_11) <- c("baseMean.KBS", "log2FoldChange.KBS", "lfcSE.KBS", "stat.KBS", "pvalue.KBS", "padj.KBS", "gene", "baseMean.Reed", "log2FoldChange.Reed","lfcSE.Reed", "stat.Reed", "pvalue.Reed", "padj.Reed")
+
+antijoin_hvl_KBS_0 <- anti_join(hKvlK_hvl_0_Ordered, hRvlR_hvl_0_Ordered, by= c("gene"="gene"))
+
+antijoin_hvl_Reed_0 <- anti_join(hRvlR_hvl_0_Ordered, hKvlK_hvl_0_Ordered,by= c("gene"="gene"))
+
+antijoin_hvl_KBS_11 <- anti_join(hKvlK_hvl_11_Ordered, hRvlR_hvl_11_Ordered, by= c("gene"="gene"))
+
+antijoin_hvl_Reed_11 <- anti_join(hRvlR_hvl_11_Ordered, hKvlK_hvl_11_Ordered, by= c("gene"="gene"))
+
+
+write.csv(join_hvl_0, paste(subgroup$outputfilenamePseudoJoinHvL0), quote=FALSE)
+write.csv(join_hvl_11, paste(subgroup$outputfilenamePseudoJoinHvL11), quote=FALSE)
+write.csv(antijoin_hvl_KBS_0, paste(subgroup$outputfilenamePseudoAntiJoinKBSHvL0), quote=FALSE)
+write.csv(antijoin_hvl_Reed_0, paste(subgroup$outputfilenamePseudoAntiJoinReedHvL0), quote=FALSE)
+write.csv(antijoin_hvl_KBS_11, paste(subgroup$outputfilenamePseudoAntiJoinKBSHvL11), quote=FALSE)
+write.csv(antijoin_hvl_Reed_11, paste(subgroup$outputfilenamePseudoAntiJoinReedHvL11), quote=FALSE)
+
+
+```
+
+# DESeq2 Model Results
+
+Previously, I had just gotten the results from the various models and filtered by p-value and LFC, however, after some research, I'm now using a more statistically sound way of finding the outliers we're looking for:
+
+DESeq2 allows you to test for which differentially expressed genes are significant both statistically and biologically. So, by adjusted p-value and by the log fold change. DESeq2 does this by testing the hypothesis that there is zero effect of the treatment on the gene and that the observed difference between treatment and control was merely caused by experimental variability (i.e., the type of variability that you can expect between different samples in the same treatment group), on a per gene basis. https://support.bioconductor.org/p/101504/
+
+In all cases here, the adjusted pvalue is calculated using the Benjamini-Hochberg (BH) adjustment (Benjamini and Hochberg 1995), and I am running independent filtering, which dynamically maximizes the number of genes with adjusted p value less than 0.1, and a given log2fold change.
+
+
+## High vs Low
+
+I've run two different models: one with no interactions: `~ FlowCell + Location + Line` and one with a pseudointeraction term: `~ Flowcell + LocationLine`
+
+Below are summary tables for the various models, with various cutoffs. Since the no interaction model has already accounted for the effect of location, each set of cutoffs has only one results table. For the pseudointeraction models, I'm showing the results tables for the two internal comparisons (HighReed vs LowReed or HighKBS vs LowKBS), which will have to be combined to get the actual DE gene set.
+
+
+### No interaction terms
+
+#### High vs low, no interaction term, adjusted p value <.1 and a FC of at least 0
+
+Here, any gene that has an adjusted pvalue of less than .1, and any log fold change that is not exactly zero is counted.
+
+```{r}
+summary(results_hvl_0)
+```
+
+#### High vs low, no interaction term, adjusted p value <.1 and a FC of at least `r FC_cutoff` 
+
+As you can see, imposing even a minimal log2fold change cutoff drastically reduced the number of significantly differentially expressed genes:
+
+```{r}
+summary(results_hvl_11)
+```
+
+### pseudointeraction term
+
+We find the same trend in the pseudointeraction model. Most candidate genes that appear to be differentially expressed do not have a reliably biologically relevant change in expression.
+
+#### HighKBS vs lowKBS, pseudointeraction term, adjusted p value <.1 and a FC of at least 0
+```{r}
+summary(hKvlK_hvl_0)
+```
+
+
+
+#### HighKBS vs lowKBS, pseudointeraction term, adjusted p value <.1 and a FC of at least `r FC_cutoff`
+```{r}
+summary(hKvlK_hvl_11)
+```
+
+#### HighReed vs lowReed, pseudointeraction term, adjusted p value <.1 and a FC of at least 0
+```{r}
+summary(hRvlR_hvl_0)
+```
+
+
+#### HighReed vs lowReed, pseudointeraction term, adjusted p value <.1 and a FC of at least `r FC_cutoff` 
+```{r}
+summary(hRvlR_hvl_11)
+```
+
+
+
+For illustration purposes, here are plots of the modeled counts for the `r length(results_hvl_11_Ordered$baseMean)` genes shown in the summary for High vs low with no interaction term, an adjusted p value <.1 and a FC of at least `r FC_cutoff`, ordered by adjusted pvalue: 
+
+```{r}
+
+plotnumb <- length(results_hvl_11_Ordered$baseMean)
+
+if(plotnumb > 10){ plotnumb <- 10 }
+        
+for(i in 1:plotnumb){ plotCounts(raph.DES,
+                          gene=rownames(results_hvl_11_Ordered)[i],
+                          intgroup=c("Line", "Location"), pch=16)}
+                                
+```
+
+
+```{r Reed/KBS contrasts with DESeq2, results='hide', include=FALSE}
+## DESeq2 - KBS vs Reed, NO interaction
+## contrast=c(column, numerator, denominator)
+
+
+results_kvr_11 <- results( raph.DES, contrast=c("Location", "KBS", "Reed"),
+                        lfcThreshold=FC_cutoff, altHypothesis = "greaterAbs", independentFiltering=TRUE)
+
+results_kvr_0 <- results( raph.DES, contrast=c("Location", "KBS", "Reed"),
+                        independentFiltering=TRUE)
+
+results_kvr_0_Ordered <- subset(as.data.frame(results_kvr_0)[order(results_kvr_0$padj),], padj < p_cutoff)
+
+write.csv(results_kvr_0_Ordered, paste(subgroup$outputfilenamePlainKvR0), quote=FALSE)
+
+results_kvr_11_Ordered <- subset(as.data.frame(results_kvr_11)[order(results_kvr_11$padj),], padj < p_cutoff)
+
+write.csv(results_kvr_11_Ordered, paste(subgroup$outputfilenamePlainKvR11), quote=FALSE)
+
+## DESeq2 - KBS vs Reed, with PSEUDO interaction
+## contrast=c(column, numerator, denominator)
+
+
+hKvhR_kvr_11 <- results( raphpseudo.DES, contrast=c("LocationLine", "KBSHigh", "ReedHigh"),
+                        lfcThreshold=FC_cutoff, altHypothesis = "greaterAbs", independentFiltering=TRUE)
+
+hKvhR_kvr_0 <- results( raphpseudo.DES, contrast=c("LocationLine", "KBSHigh", "ReedHigh"),
+                        independentFiltering=TRUE)
+
+hKvhR_kvr_0_Ordered <- subset(as.data.frame(hKvhR_kvr_0)[order(hKvhR_kvr_0$padj),], padj < p_cutoff)
+
+write.csv(hKvhR_kvr_0_Ordered, paste(subgroup$outputfilenamePseudoHighKvR0), quote=FALSE)
+
+hKvhR_kvr_11_Ordered <- subset(as.data.frame(hKvhR_kvr_11)[order(hKvhR_kvr_11$padj),], padj < p_cutoff)
+
+write.csv(hKvhR_kvr_11_Ordered, paste(subgroup$outputfilenamePseudoHighKvR11), quote=FALSE)
+
+
+
+lKvlR_kvr_11 <- results( raphpseudo.DES, contrast=c("LocationLine", "KBSLow", "ReedLow"),
+                        lfcThreshold=FC_cutoff, altHypothesis = "greaterAbs", independentFiltering=TRUE)
+
+lKvlR_kvr_0 <- results( raphpseudo.DES, contrast=c("LocationLine", "KBSLow", "ReedLow"),
+                        independentFiltering=TRUE)
+
+lKvlR_kvr_0_Ordered <- subset(as.data.frame(lKvlR_kvr_0)[order(lKvlR_kvr_0$padj),], padj < p_cutoff)
+
+write.csv(lKvlR_kvr_0_Ordered, paste(subgroup$outputfilenamePseudoLowKvR0), quote=FALSE)
+
+lKvlR_kvr_11_Ordered <- subset(as.data.frame(lKvlR_kvr_11)[order(lKvlR_kvr_11$padj),], padj < p_cutoff)
+
+write.csv(lKvlR_kvr_11_Ordered, paste(subgroup$outputfilenamePseudoLowKvR11), quote=FALSE)
+
+## Make Join and antijoin lists for pseudo model
+
+hKvhR_kvr_0_Ordered$gene <- rownames(hKvhR_kvr_0_Ordered)
+hKvhR_kvr_11_Ordered$gene <- rownames(hKvhR_kvr_11_Ordered)
+lKvlR_kvr_0_Ordered$gene <- rownames(lKvlR_kvr_0_Ordered)
+lKvlR_kvr_11_Ordered$gene <- rownames(lKvlR_kvr_11_Ordered)
+
+
+join_kvr_0 <- inner_join(hKvhR_kvr_0_Ordered, lKvlR_kvr_0_Ordered, by= c("gene"="gene") ) 
+
+join_kvr_11 <- inner_join(hKvhR_kvr_11_Ordered, lKvlR_kvr_11_Ordered, by= c("gene"="gene"))
+
+colnames(join_kvr_0) <- c("baseMean.High", "log2FoldChange.High", "lfcSE.High", "stat.High", "pvalue.High", "padj.High", "gene", "baseMean.Low", "log2FoldChange.Low","lfcSE.Low", "stat.Low", "pvalue.Low", "padj.Low")
+
+colnames(join_kvr_11) <- c("baseMean.High", "log2FoldChange.High", "lfcSE.High", "stat.High", "pvalue.High", "padj.High", "gene", "baseMean.Low", "log2FoldChange.Low","lfcSE.Low", "stat.Low", "pvalue.Low", "padj.Low")
+
+antijoin_kvr_High_0 <- anti_join(hKvhR_kvr_0_Ordered, lKvlR_kvr_0_Ordered, by= c("gene"="gene"))
+
+antijoin_kvr_Low_0 <- anti_join(lKvlR_kvr_0_Ordered, hKvhR_kvr_0_Ordered,by= c("gene"="gene"))
+
+antijoin_kvr_High_11 <- anti_join(hKvhR_kvr_11_Ordered, lKvlR_kvr_11_Ordered, by= c("gene"="gene"))
+
+antijoin_kvr_Low_11 <- anti_join(lKvlR_kvr_11_Ordered, hKvhR_kvr_11_Ordered, by= c("gene"="gene"))
+
+write.csv(join_kvr_0, paste(subgroup$outputfilenamePseudoJoinKvR0), quote=FALSE)
+write.csv(join_kvr_11, paste(subgroup$outputfilenamePseudoJoinKvR11), quote=FALSE)
+
+
+write.csv(antijoin_kvr_High_0, paste(subgroup$outputfilenamePseudoAntiJoinHighKvR0), quote=FALSE)
+write.csv(antijoin_kvr_Low_0, paste(subgroup$outputfilenamePseudoAntiJoinLowKvR0), quote=FALSE)
+write.csv(antijoin_kvr_High_11, paste(subgroup$outputfilenamePseudoAntiJoinHighKvR11), quote=FALSE)
+write.csv(antijoin_kvr_Low_11, paste(subgroup$outputfilenamePseudoAntiJoinLowKvR11), quote=FALSE)
+          
+           
+```
+
+### MA plots
+
+#### unshrunken
+```{r UnshrunkenMA, fig.path=paste("../figures/",subgroup$Dataname,"/", sep=""), fig.keep="last", fig.width=11}
+res.noshr <- results(raph.DES, contrast=c("Line","Low","High"))
+
+plotMA(res.noshr, ylim = c(-5, 5))
+
+#abline(h=c(-1.1,1.1), col="dodgerblue", lwd=2)
+abline(h=c(-FC_cutoff,FC_cutoff), col="dodgerblue", lwd=2)
+
+
+```
+
+Blue lines at `r FC_cutoff` fold change
+
+#### Shrunken
+
+```{r ShrunkenMA, fig.path=paste("../figures/",subgroup$Dataname,"/", sep=""), fig.keep="last", fig.width=11}
+res <- lfcShrink(raph.DES, contrast=c("Line","Low","High"))
+plotMA(res, ylim = c(-2, 2))
+abline(h=c(-FC_cutoff,FC_cutoff), col="dodgerblue", lwd=2)
+#abline(h=c(-1.1,1.1), col="dodgerblue", lwd=2)
+
+```
+
+Blue lines at `r FC_cutoff` fold change
+
+## KBS vs Reed
+
+Everything here is the same as above, except now I'm testing for drift and lab adaptation. These are also exactly the same models: one with no interactions: `~ FlowCell + Location + Line` and one with a pseudointeraction term: `~ Flowcell + LocationLine`, I'm just pulling out different contrasts.
+
+Below are summary tables for the various models, with various cutoffs. Since the no interaction model has already accounted for the effect of line, each set of cutoffs has only one results table. For the pseudointeraction models, I'm showing the results tables for the two cross-location comparisons (HighReed vs HighKBS or LowReed vs LowKBS), which will have to be combined to get the actual DE gene set.
+
+
+
+#### KBS vs Reed, no interaction term, adjusted p value <.1 and a FC of at least 0
+
+All of these models find far more differentially expressed genes between locations than there were between lines. 
+
+```{r}
+summary(results_kvr_0)
+```
+
+#### KBS vs Reed, no interaction term, adjusted p value <.1 and a FC of at least `r FC_cutoff`
+
+And as before, requiring a biologically relevant log 2 fold change drastically reduces the number of genes.
+
+```{r}
+summary(results_kvr_11)
+```
+
+
+#### HighKBS vs HighReed, pseudointeraction term, adjusted p value <.1 and a FC of at least 0
+```{r}
+summary(hKvhR_kvr_0)
+```
+
+#### HighKBS vs HighReed, pseudointeraction term, adjusted p value <.1 and a FC of at least `r FC_cutoff`
+```{r}
+summary(hKvhR_kvr_11)
+```
+
+
+#### LowKBS vs LowReed, pseudointeraction term, adjusted p value <.1 and a FC of at least `r FC_cutoff` 
+```{r}
+summary(lKvlR_kvr_11)
+```
+
+
+#### LowKBS vs LowReed, pseudointeraction term, adjusted p value <.1 and a FC of at least 0
+```{r}
+summary(lKvlR_kvr_0)
+```
+
