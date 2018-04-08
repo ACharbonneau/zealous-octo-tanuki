@@ -21,6 +21,63 @@ for i in /mnt/research/radishGenomics/OriginalSequencingFiles/2008_AE_RNAseq/cel
   tar -zxvf ${i} -C .
 done
 
+mkdir Genomes
+mkdir Genomes/Moghe2014
+mkdir Genomes/Mitsui2015
+mkdir Genomes/Kitashiba2014
+mkdir Genomes/Jeong2016
+mkdir Genomes/RR3NYEST
+
+GetGenomes() {
+    if hash wget 2>/dev/null; then
+        cd Genomes/Jeong2016 #DOI: 10.1007/s00122-016-2708-0
+        wget radish-genome.org/Data_resource/Rs_1.0.chromosomes.fix.fasta.gz
+        wget radish-genome.org/Data_resource/Rs_1.0_Gene.LFY.gff.gz
+        wget radish-genome.org/Data_resource/Rs_1.0.cds.fa.gz
+    else
+        cd Genomes/Jeong2016 #DOI: 10.1007/s00122-016-2708-0
+        curl -O radish-genome.org/Data_resource/Rs_1.0.chromosomes.fix.fasta.gz
+        curl -O radish-genome.org/Data_resource/Rs_1.0_Gene.LFY.gff.gz
+        curl -O radish-genome.org/Data_resource/Rs_1.0.cds.fa.gz
+        cd ../RR3NYEST
+        curl -O http://radish.plantbiology.msu.edu/images/3/39/RR3_NY_25000.zip
+        cd ../Kitashiba2014
+        curl -O ftp://ftp.kazusa.or.jp/pub/radish/RSA_r1.0.gz
+        curl -O ftp://ftp.kazusa.or.jp/pub/radish/RSA_r1.0_cds.gz
+        curl -O ftp://ftp.kazusa.or.jp/pub/radish/RSA_r1.0_genes.gff3.gz
+        cd ../Mitsui2015
+        curl -O http://www.nodai-genome-d.org/public_download/rsg_all_v1.fasta.gz
+        curl -O http://www.nodai-genome-d.org/public_download/rsgm_nav1.fasta.gz
+        curl -O http://www.nodai-genome-d.org/public_download/rsgv1.zip
+        cd ../Moghe2014
+        curl -O http://radish.plantbiology.msu.edu/images/f/f5/RrContigs.fa.fasta.tar.gz
+        curl -O http://radish.plantbiology.msu.edu/images/f/fe/RrCDS.fa.tar.gz
+        curl -O http://radish.plantbiology.msu.edu/images/7/79/Rr_gene_pseu.gff.mod.tar.gz
+        cd ../..
+
+    fi
+}
+
+# Expand files
+gunzip Genomes/Kitashiba2014/radish/RSA_r1.0.gz
+gunzip Genomes/Kitashiba2014/RSA_r1.0_cds.fa
+gunzip Genomes/Mitsui2015/rsg_all_v1.fasta.gz
+gunzip Genomes/Jeong2016/Rs_1.0.chromosomes.fix.fasta.gz
+gunzip Genomes/Jeong2016/Rs_1.0.cds.fa.gz
+gunzip Genomes/Mitsui2015/rsgm_nav1.fasta.gz
+tar -xvzf Genomes/Moghe2014/RrContigs.fa.fasta.tar.gz -C Genomes/Moghe2014/
+tar -xvzf Genomes/Moghe2014/RrCDS.fa.tar.gz -C Genomes/Moghe2014/
+unzip Genomes/RR3NYEST/RR3_NY_25000.zip -d Genomes/RR3NYEST/
+
+
+#Get FASTAS into right format
+awk '/^>/ {printf("\n%s\n",$0);next; } { printf("%s",$0);}  END {printf("\n");}' < Genomes/Kitashiba2014/RSA_r1.0 > Genomes/Kitashiba2014/Edit_RSA_r1.0.fasta
+awk '/^>/ {printf("\n%s\n",$0);next; } { printf("%s",$0);}  END {printf("\n");}' < Genomes/RR3NYEST/RR3_NY/1000017.est > Genomes/RR3NYEST/RR3_NY/1000017.fa
+
+#Change Derives_from from number.1 to number:
+less Genomes/Jeong2016/Rs_1.0_Gene.LFY.gff.gz | sed -r s/\(Derives_from=Rs[0-9]+\)\.[0-9]/\\1/g > Genomes/Jeong2016/Edited_Rs_1.0.Gene.LFY.gff
+
+
 #Rename to format: Cel_Date_Lane_PlantID.filetype
 
 echo "2. Rename files"

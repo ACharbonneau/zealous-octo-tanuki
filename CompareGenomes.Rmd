@@ -1,0 +1,180 @@
+---
+title: "CompareGenomes"
+author: "Amanda Charbonneau"
+date: '`r Sys.Date()`'
+output:
+  html_document:
+    code_folding: hide
+    collapsed: no
+    df_print: paged
+    number_sections: yes
+    theme: cerulean
+    toc: yes
+    toc_depth: 5
+    toc_float: yes
+  html_notebook:
+    toc: yes
+    toc_depth: 5
+---
+
+```{r setup, include=FALSE}
+
+# Install function for packages    
+packages<-function(x){
+  x<-as.character(match.call()[[2]])
+  if (!require(x,character.only=TRUE)){
+    install.packages(pkgs=x,repos="http://cran.r-project.org")
+    require(x,character.only=TRUE)
+  }
+}
+
+bioconductors <- function(x){
+    x<- as.character(match.call()[[2]])
+    if (!require(x, character.only = TRUE)){
+      source("https://bioconductor.org/biocLite.R")
+      biocLite(pkgs=x)
+      require(x, character.only = TRUE)
+    }
+}
+
+bioconductors(CompGO)
+packages(venn)
+packages(dplyr)
+packages(ggplot2)
+ 
+ 
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.path="../figures/", fig.keep="last")
+```
+
+
+```{r, AllgeneswithReads}
+JeongAllMap <- read.table("../DEseqOutput/Jeong2016_GS_background_AsMitsui.names.uniq", sep = ",")
+KitashibaAllMap <- read.table("../DEseqOutput/Kitashiba2014_GS_background_AsMitsui.names.uniq", sep = ",")
+MitsuiAllMap <- read.table("../DEseqOutput/Mitsui2015_GS_background_AsMitsui.names.uniq")
+MogheAllMap <- read.table("../DEseqOutput/Moghe2014_GS_background_AsMitsui.names.uniq", sep = ",")
+RR3NYESTAllMap <- read.table("../DEseqOutput/RR3NYEST_GS_background_AsMitsui.names.uniq", sep = ",")
+
+```
+
+
+```{r, allDE_HL}
+JeongHvl <- read.table("../DEseqOutput/Jeong2016_GS_deseq2_FC0_HvL_AsMitsui.names.uniq", col.names = "Jeong2016")
+KitashibaHvl <- read.table("../DEseqOutput/Kitashiba2014_GS_deseq2_FC0_HvL_AsMitsui.names.uniq", col.names = "Kitashiba2014")
+MitsuiHvl <- read.table("../DEseqOutput/Mitsui2015_GS_deseq2_FC0_HvL_AsMitsui.names.uniq", col.names = "Mitsui2015")
+MogheHvl <- read.table("../DEseqOutput/Moghe2014_GS_deseq2_FC0_HvL_AsMitsui.names.uniq", col.names = "Moghe2014")
+RR3NYESTHvl <- read.table("../DEseqOutput/RR3NYEST_GS_deseq2_FC0_HvL_AsMitsui.names.uniq", col.names = "RR3NYEST")
+
+```
+
+```{r, DE_Go}
+
+JeongGO <- read.table("../DEseqOutput/GOstuff/JeongPlantGoSlimSingle.csv", sep=",", header=TRUE)
+KitashibaGO <- read.table("../DEseqOutput/GOstuff/KitPlantGoSlimSingle.csv", sep=",", header=TRUE)
+MitsuiGO <- read.table("../DEseqOutput/GOstuff/MitsuiPlantGoSlimSingle.csv", sep=",", header=TRUE)
+MogheGO <- read.table("../DEseqOutput/GOstuff/MoghePlantGoSlimSingle.csv", sep=",", header=TRUE)
+RR3NYGO <- read.table("../DEseqOutput/GOstuff/RR3NYPlantGoSlimSingle.csv", sep=",", header=TRUE)
+```
+
+
+## Venn diagram of all genes that have reads mapped to them from each genome
+```{r Allvenn}
+
+MogheAll <- as.data.frame(MogheAllMap$V2)
+colnames(MogheAll) <- paste("Moghe2014", length(MogheAll$`MogheAllMap$V2`), sep = "_")
+JeongAll <- as.data.frame(JeongAllMap$V2)
+colnames(JeongAll) <- paste("Jeong2016", length(JeongAll$`JeongAllMap$V2`), sep = "_")
+KitashibaAll <- as.data.frame(KitashibaAllMap$V2)
+colnames(KitashibaAll) <- paste("Kitashiba2014", length(KitashibaAll$`KitashibaAllMap$V2`), sep="_")
+MitsuiAll <- as.data.frame(MitsuiAllMap$V1)
+colnames(MitsuiAll) <- paste("Mitsui2015", length(MitsuiAll$`MitsuiAllMap$V1`), sep = "_")
+RR3NYESTAll <- as.data.frame(RR3NYESTAllMap$V2)
+colnames(RR3NYESTAll) <- paste("RR3NYEST", length(RR3NYESTAll$`RR3NYESTAllMap$V2`), sep = "_")
+
+
+venn(c(MogheAll,JeongAll, KitashibaAll, MitsuiAll, RR3NYESTAll), cexsn=0.1, zcolor="style")
+
+```
+
+
+## Venn diagram of genes showing differential expression from each genome
+
+
+```{r, HvLvenn}
+venn(c(MogheHvl,JeongHvl, KitashibaHvl, MitsuiHvl, RR3NYESTHvl), cexsn=0.1, zcolor="style")
+```
+
+
+```{r, eval=FALSE}
+getFnAnot_genome(MogheHvl, david = NULL, email = "charbo24@msu.edu",
+idType = "ENTREZ_GENE_ID", listName = "auto_list", count = 1L,
+PVal = 1, background = NULL, bgIdType = NULL, bgListName = NULL,
+getKEGG = FALSE)
+```
+
+## Data from using a GO term catagorizer. 
+
+This program essentially takes the big list of GO terms from the DE gene list and arranges them into high level meta-catagories. Since GO terms aren't unique in the DAG graphs, the catagory counts don't always add up to the number of original terms. I used the single count method, which counts "only once when multiple paths are found between an ancestral term and a child term. The Single occurences count is often used to get an idea how the child terms are "classified". It can often effectively avoid an inflated total counts". (From FAQ). However, everything still gets at least double counted (In biological process and biosynthetic process, for example)
+
+
+https://www.animalgenome.org/bioinfo/tools/catego/
+
+CateGOrizer: A Web-Based Program to Batch Analyze Gene Ontology Classification Categories.
+
+Zhi-Liang Hu, Jie Bao and James M. Reecy (2008) CateGOrizer: A Web-Based Program to Batch Analyze Gene Ontology Classification Categories. Online Journal of Bioinformatics. 9 (2):108-112.
+
+Classification Methods: Plant_GOslim
+
+Counting Methods: single
+
+### Venn
+
+This Venn doesn't do what I thought it would. But I've already written the code :/
+```{r, GOHvLvenn}
+
+MogheAllGO <- as.data.frame(MogheGO$GO_Class_ID)
+colnames(MogheAllGO) <- paste("Moghe2014", length(MogheAllGO$`MogheGO$GO_Class_ID`), sep = "_")
+
+JeongAllGO <- as.data.frame(JeongGO$GO_Class_ID)
+colnames(JeongAllGO) <- paste("Jeong2016", length(JeongAllGO$`JeongGO$GO_Class_ID`), sep = "_")
+
+KitashibaAllGO <- as.data.frame(KitashibaGO$GO_Class_ID)
+colnames(KitashibaAllGO) <- paste("Kitashiba2014", length(KitashibaAllGO$`KitashibaGO$GO_Class_ID`), sep="_")
+
+MitsuiAllGO <- as.data.frame(MitsuiGO$GO_Class_ID)
+colnames(MitsuiAllGO) <- paste("Mitsui2015", length(MitsuiAllGO$`MitsuiGO$GO_Class_ID`), sep = "_")
+
+RR3NYESTAllGO <- as.data.frame(RR3NYGO$GO_Class_ID)
+colnames(RR3NYESTAllGO) <- paste("RR3NYEST", length(RR3NYESTAllGO$`RR3NYGO$GO_Class_ID`), sep = "_")
+
+venn(c(MogheAllGO,JeongAllGO, KitashibaAllGO, MitsuiAllGO, RR3NYESTAllGO), cexsn=1, zcolor="style")
+```
+
+This is better.
+
+
+
+```{r GOHvlBar}
+
+AllGOs <- full_join(MogheGO[,c(1,3)], MitsuiGO[c(1,3)], by= c("GO_Class_ID"="GO_Class_ID"))
+AllGOs <- full_join(AllGOs, JeongGO[,c(1,3)], by= c("GO_Class_ID"="GO_Class_ID"))
+AllGOs <- full_join(AllGOs, KitashibaGO[,c(1,3)], by= c("GO_Class_ID"="GO_Class_ID"))
+AllGOs <- full_join(AllGOs, RR3NYGO[,c(1,3)], by= c("GO_Class_ID"="GO_Class_ID"))
+definitions <- rbind(MogheGO[,c(1,2)], JeongGO[,c(1,2)], KitashibaGO[,c(1,2)],
+                     RR3NYGO[,c(1,2)], MitsuiGO[,c(1,2)])
+definitions <- unique(definitions)
+AllGOs <- right_join(AllGOs, definitions)
+
+colnames(AllGOs) <- c( "GO_Class_ID", "Moghe2014", "Mitsui2015", "Jeong2016", "Kitashiba2014", "RR3NYest", "Definitions")
+
+write.csv(AllGOs, "../DEseqOutput/GOstuff/CompareGOsHvL.csv")
+
+MogheGO$Genome <- "Moghe2014"
+MitsuiGO$Genome <- "Mitsui2015"
+JeongGO$Genome <- "Jeong2016"
+KitashibaGO$Genome <- "Kitashiba2014"
+RR3NYGO$Genome <- "RR3NYest"
+PlotAllGOs <- as.data.frame( rbind( MogheGO, MitsuiGO, JeongGO, KitashibaGO, RR3NYGO))
+
+ggplot(PlotAllGOs, aes(Genome)) + geom_bar(aes(fill=GO_Class_ID, weight=Counts))
+```
+

@@ -1,0 +1,212 @@
+---
+title: "PseudoInteraction"
+author: "Amanda Charbonneau"
+date: "4/7/2018"
+output: html_document
+---
+
+```{r PseudoInteractions DESeq2, results='hide', include=FALSE, eval=FALSE}
+## One with pseudointeractions
+
+raphpseudo.DES <- DESeqDataSetFromMatrix(countData = exprs( raph.est ), 
+                    colData = pData( raph.est ), design = ~ FlowCell + LocationLine )
+
+raphpseudo.DES <- DESeq( raphpseudo.DES )
+
+#Note: In order to benefit from the default settings of the package, you should put the variable of interest at the end of the formula and make sure the control level is the first level. https://bioconductor.org/packages/3.7/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#htseq
+
+#With no additional arguments to results, the log2 fold change and Wald test p value will be for the last variable in the design formula, and if this is a factor, the comparison will be the last level of this variable over the reference level (see previous note on factor levels). However, the order of the variables of the design do not matter so long as the user specifies the comparison to build a results table for, using the name or contrast arguments of results. https://bioconductor.org/packages/3.7/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#htseq
+
+```
+
+```{r}
+## DESeq2 - High vs Low, with PSEUDO interaction
+## contrast=c(column, numerator, denominator)
+
+hKvlK_hvl_11 <- results( raphpseudo.DES, contrast=c("LocationLine", "KBSHigh", "KBSLow"),
+                        lfcThreshold=FC_cutoff, altHypothesis = "greaterAbs", independentFiltering=TRUE)
+
+hKvlK_hvl_0 <- results( raphpseudo.DES, contrast=c("LocationLine", "KBSHigh", "KBSLow"),
+                        independentFiltering=TRUE)
+
+hKvlK_hvl_0_Ordered <- subset(as.data.frame(hKvlK_hvl_0)[order(hKvlK_hvl_0$padj),], padj < p_cutoff)
+
+write.csv(hKvlK_hvl_0_Ordered, paste(subgroup$outputfilenamePseudoKBSHvL0), quote=FALSE)
+
+hKvlK_hvl_11_Ordered <- subset(as.data.frame(hKvlK_hvl_11)[order(hKvlK_hvl_11$padj),], padj < p_cutoff)
+
+write.csv(hKvlK_hvl_11_Ordered, paste(subgroup$outputfilenamePseudoKBSHvL11), quote=FALSE)
+
+
+
+hRvlR_hvl_11 <- results( raphpseudo.DES, contrast=c("LocationLine", "ReedHigh", "ReedLow"),
+                        lfcThreshold=FC_cutoff, altHypothesis = "greaterAbs", independentFiltering=TRUE)
+
+hRvlR_hvl_0 <- results( raphpseudo.DES, contrast=c("LocationLine", "ReedHigh", "ReedLow"),
+                        independentFiltering=TRUE)
+
+hRvlR_hvl_0_Ordered <- subset(as.data.frame(hRvlR_hvl_0)[order(hRvlR_hvl_0$padj),], padj < p_cutoff)
+
+write.csv(hRvlR_hvl_0_Ordered, paste(subgroup$outputfilenamePseudoReedHvL0), quote=FALSE)
+
+hRvlR_hvl_11_Ordered <- subset(as.data.frame(hRvlR_hvl_11)[order(hRvlR_hvl_11$padj),], padj < p_cutoff)
+
+write.csv(hRvlR_hvl_11_Ordered, paste(subgroup$outputfilenamePseudoReedHvL11), quote=FALSE)
+
+## Make Join and antijoin lists for pseudo model
+
+
+hKvlK_hvl_0_Ordered$gene <- rownames(hKvlK_hvl_0_Ordered)
+hRvlR_hvl_0_Ordered$gene <- rownames(hRvlR_hvl_0_Ordered)
+hKvlK_hvl_11_Ordered$gene <- rownames(hKvlK_hvl_11_Ordered)
+hRvlR_hvl_11_Ordered$gene <- rownames(hRvlR_hvl_11_Ordered)
+
+join_hvl_0 <- inner_join(hKvlK_hvl_0_Ordered, hRvlR_hvl_0_Ordered, by= c("gene"="gene") ) 
+
+join_hvl_11 <- inner_join(hKvlK_hvl_11_Ordered, hRvlR_hvl_11_Ordered, by= c("gene"="gene"))
+
+colnames(join_hvl_0) <- c("baseMean.KBS", "log2FoldChange.KBS", "lfcSE.KBS", "stat.KBS", "pvalue.KBS", "padj.KBS", "gene", "baseMean.Reed", "log2FoldChange.Reed","lfcSE.Reed", "stat.Reed", "pvalue.Reed", "padj.Reed")
+
+colnames(join_hvl_11) <- c("baseMean.KBS", "log2FoldChange.KBS", "lfcSE.KBS", "stat.KBS", "pvalue.KBS", "padj.KBS", "gene", "baseMean.Reed", "log2FoldChange.Reed","lfcSE.Reed", "stat.Reed", "pvalue.Reed", "padj.Reed")
+
+antijoin_hvl_KBS_0 <- anti_join(hKvlK_hvl_0_Ordered, hRvlR_hvl_0_Ordered, by= c("gene"="gene"))
+
+antijoin_hvl_Reed_0 <- anti_join(hRvlR_hvl_0_Ordered, hKvlK_hvl_0_Ordered,by= c("gene"="gene"))
+
+antijoin_hvl_KBS_11 <- anti_join(hKvlK_hvl_11_Ordered, hRvlR_hvl_11_Ordered, by= c("gene"="gene"))
+
+antijoin_hvl_Reed_11 <- anti_join(hRvlR_hvl_11_Ordered, hKvlK_hvl_11_Ordered, by= c("gene"="gene"))
+
+
+write.csv(join_hvl_0, paste(subgroup$outputfilenamePseudoJoinHvL0), quote=FALSE)
+write.csv(join_hvl_11, paste(subgroup$outputfilenamePseudoJoinHvL11), quote=FALSE)
+write.csv(antijoin_hvl_KBS_0, paste(subgroup$outputfilenamePseudoAntiJoinKBSHvL0), quote=FALSE)
+write.csv(antijoin_hvl_Reed_0, paste(subgroup$outputfilenamePseudoAntiJoinReedHvL0), quote=FALSE)
+write.csv(antijoin_hvl_KBS_11, paste(subgroup$outputfilenamePseudoAntiJoinKBSHvL11), quote=FALSE)
+write.csv(antijoin_hvl_Reed_11, paste(subgroup$outputfilenamePseudoAntiJoinReedHvL11), quote=FALSE)
+
+```
+
+
+### pseudointeraction term
+
+We find the same trend in the pseudointeraction model. Most candidate genes that appear to be differentially expressed do not have a reliably biologically relevant change in expression.
+
+#### HighKBS vs lowKBS, pseudointeraction term, adjusted p value <.1 and a FC of at least 0
+```{r}
+summary(hKvlK_hvl_0)
+```
+
+
+
+#### HighKBS vs lowKBS, pseudointeraction term, adjusted p value <.1 and a FC of at least `r 2^FC_cutoff`
+```{r}
+summary(hKvlK_hvl_11)
+```
+
+#### HighReed vs lowReed, pseudointeraction term, adjusted p value <.1 and a FC of at least 0
+```{r}
+summary(hRvlR_hvl_0)
+```
+
+
+#### HighReed vs lowReed, pseudointeraction term, adjusted p value <.1 and a FC of at least `r 2^FC_cutoff` 
+```{r}
+summary(hRvlR_hvl_11)
+```
+
+
+```{r}
+## DESeq2 - KBS vs Reed, with PSEUDO interaction
+## contrast=c(column, numerator, denominator)
+
+
+hKvhR_kvr_11 <- results( raphpseudo.DES, contrast=c("LocationLine", "KBSHigh", "ReedHigh"),
+                        lfcThreshold=FC_cutoff, altHypothesis = "greaterAbs", independentFiltering=TRUE)
+
+hKvhR_kvr_0 <- results( raphpseudo.DES, contrast=c("LocationLine", "KBSHigh", "ReedHigh"),
+                        independentFiltering=TRUE)
+
+hKvhR_kvr_0_Ordered <- subset(as.data.frame(hKvhR_kvr_0)[order(hKvhR_kvr_0$padj),], padj < p_cutoff)
+
+write.csv(hKvhR_kvr_0_Ordered, paste(subgroup$outputfilenamePseudoHighKvR0), quote=FALSE)
+
+hKvhR_kvr_11_Ordered <- subset(as.data.frame(hKvhR_kvr_11)[order(hKvhR_kvr_11$padj),], padj < p_cutoff)
+
+write.csv(hKvhR_kvr_11_Ordered, paste(subgroup$outputfilenamePseudoHighKvR11), quote=FALSE)
+
+
+
+lKvlR_kvr_11 <- results( raphpseudo.DES, contrast=c("LocationLine", "KBSLow", "ReedLow"),
+                        lfcThreshold=FC_cutoff, altHypothesis = "greaterAbs", independentFiltering=TRUE)
+
+lKvlR_kvr_0 <- results( raphpseudo.DES, contrast=c("LocationLine", "KBSLow", "ReedLow"),
+                        independentFiltering=TRUE)
+
+lKvlR_kvr_0_Ordered <- subset(as.data.frame(lKvlR_kvr_0)[order(lKvlR_kvr_0$padj),], padj < p_cutoff)
+
+write.csv(lKvlR_kvr_0_Ordered, paste(subgroup$outputfilenamePseudoLowKvR0), quote=FALSE)
+
+lKvlR_kvr_11_Ordered <- subset(as.data.frame(lKvlR_kvr_11)[order(lKvlR_kvr_11$padj),], padj < p_cutoff)
+
+write.csv(lKvlR_kvr_11_Ordered, paste(subgroup$outputfilenamePseudoLowKvR11), quote=FALSE)
+
+## Make Join and antijoin lists for pseudo model
+
+hKvhR_kvr_0_Ordered$gene <- rownames(hKvhR_kvr_0_Ordered)
+hKvhR_kvr_11_Ordered$gene <- rownames(hKvhR_kvr_11_Ordered)
+lKvlR_kvr_0_Ordered$gene <- rownames(lKvlR_kvr_0_Ordered)
+lKvlR_kvr_11_Ordered$gene <- rownames(lKvlR_kvr_11_Ordered)
+
+
+join_kvr_0 <- inner_join(hKvhR_kvr_0_Ordered, lKvlR_kvr_0_Ordered, by= c("gene"="gene") ) 
+
+join_kvr_11 <- inner_join(hKvhR_kvr_11_Ordered, lKvlR_kvr_11_Ordered, by= c("gene"="gene"))
+
+colnames(join_kvr_0) <- c("baseMean.High", "log2FoldChange.High", "lfcSE.High", "stat.High", "pvalue.High", "padj.High", "gene", "baseMean.Low", "log2FoldChange.Low","lfcSE.Low", "stat.Low", "pvalue.Low", "padj.Low")
+
+colnames(join_kvr_11) <- c("baseMean.High", "log2FoldChange.High", "lfcSE.High", "stat.High", "pvalue.High", "padj.High", "gene", "baseMean.Low", "log2FoldChange.Low","lfcSE.Low", "stat.Low", "pvalue.Low", "padj.Low")
+
+antijoin_kvr_High_0 <- anti_join(hKvhR_kvr_0_Ordered, lKvlR_kvr_0_Ordered, by= c("gene"="gene"))
+
+antijoin_kvr_Low_0 <- anti_join(lKvlR_kvr_0_Ordered, hKvhR_kvr_0_Ordered,by= c("gene"="gene"))
+
+antijoin_kvr_High_11 <- anti_join(hKvhR_kvr_11_Ordered, lKvlR_kvr_11_Ordered, by= c("gene"="gene"))
+
+antijoin_kvr_Low_11 <- anti_join(lKvlR_kvr_11_Ordered, hKvhR_kvr_11_Ordered, by= c("gene"="gene"))
+
+write.csv(join_kvr_0, paste(subgroup$outputfilenamePseudoJoinKvR0), quote=FALSE)
+write.csv(join_kvr_11, paste(subgroup$outputfilenamePseudoJoinKvR11), quote=FALSE)
+
+
+write.csv(antijoin_kvr_High_0, paste(subgroup$outputfilenamePseudoAntiJoinHighKvR0), quote=FALSE)
+write.csv(antijoin_kvr_Low_0, paste(subgroup$outputfilenamePseudoAntiJoinLowKvR0), quote=FALSE)
+write.csv(antijoin_kvr_High_11, paste(subgroup$outputfilenamePseudoAntiJoinHighKvR11), quote=FALSE)
+write.csv(antijoin_kvr_Low_11, paste(subgroup$outputfilenamePseudoAntiJoinLowKvR11), quote=FALSE)
+          
+
+```
+
+
+#### HighKBS vs HighReed, pseudointeraction term, adjusted p value <.1 and a FC of at least 0
+```{r}
+summary(hKvhR_kvr_0)
+```
+
+#### HighKBS vs HighReed, pseudointeraction term, adjusted p value <.1 and a FC of at least `r 2^FC_cutoff`
+```{r}
+summary(hKvhR_kvr_11)
+```
+
+
+#### LowKBS vs LowReed, pseudointeraction term, adjusted p value <.1 and a FC of at least `r 2^FC_cutoff` 
+```{r}
+summary(lKvlR_kvr_11)
+```
+
+
+#### LowKBS vs LowReed, pseudointeraction term, adjusted p value <.1 and a FC of at least 0
+```{r}
+summary(lKvlR_kvr_0)
+```
+
