@@ -75,8 +75,8 @@ sessionInfo()
 ## To run interactively, you need to load the inputfiles manually, 
 ## run the following two commented lines:
 
-# Inputfiles <- read.csv("../metadata/HTanalysisInputForR.csv")
-# Mapping <- "RR3NYEST_GS"
+ Inputfiles <- read.csv("../metadata/HTanalysisInputForR.csv")
+ Mapping <- "Mitsui2015_GS"
 
 subgroup <- Inputfiles[ Inputfiles$Dataname == Mapping, ]
 
@@ -391,6 +391,8 @@ For illustration purposes, here are plots of the modeled counts for the `r lengt
 
 ```{r}
 
+pdf(paste("../figures/GenePlots_", Mapping, ".pdf", sep=""))
+
 plotnumb <- length(results_hvl_11_Ordered$baseMean)
 
 if(plotnumb > 10){ plotnumb <- 10 }
@@ -445,7 +447,7 @@ Blue lines at `r 2^FC_cutoff` fold change
 ```{r ShrunkenMA, fig.path=paste("../figures/",subgroup$Dataname,"/", sep=""), fig.keep="last", fig.width=11}
 res <- lfcShrink(raph.DES, contrast=c("Line","Low","High"))
 plotMA(res, ylim = c(-2, 2))
-abline(h=c(-2^FC_cutoff, 2^FC_cutoff), col="dodgerblue", lwd=2)
+#abline(h=c(-2^FC_cutoff, 2^FC_cutoff), col="dodgerblue", lwd=2)
 #abline(h=c(-1.1,1.1), col="dodgerblue", lwd=2)
 
 ```

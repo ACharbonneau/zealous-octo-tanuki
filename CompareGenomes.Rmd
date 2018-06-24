@@ -37,10 +37,10 @@ bioconductors <- function(x){
     }
 }
 
-bioconductors(CompGO)
 packages(venn)
 packages(dplyr)
 packages(ggplot2)
+packages(data.table)
  
  
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.path="../figures/", fig.keep="last")
@@ -48,6 +48,9 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.path="
 
 
 ```{r, AllgeneswithReads}
+
+# These are made by blasting any genes with reads aligned to them against Mitsui2015, then making a unique list of the Mitsui-ified gene names
+
 JeongAllMap <- read.table("../DEseqOutput/Jeong2016_GS_background_AsMitsui.names.uniq", sep = ",")
 KitashibaAllMap <- read.table("../DEseqOutput/Kitashiba2014_GS_background_AsMitsui.names.uniq", sep = ",")
 MitsuiAllMap <- read.table("../DEseqOutput/Mitsui2015_GS_background_AsMitsui.names.uniq")
@@ -58,6 +61,9 @@ RR3NYESTAllMap <- read.table("../DEseqOutput/RR3NYEST_GS_background_AsMitsui.nam
 
 
 ```{r, allDE_HL}
+
+# These are made by blasting all DE genes against Mitsui2015, then making a unique list of the Mitsui-ified gene names
+
 JeongHvl <- read.table("../DEseqOutput/Jeong2016_GS_deseq2_FC0_HvL_AsMitsui.names.uniq", col.names = "Jeong2016")
 KitashibaHvl <- read.table("../DEseqOutput/Kitashiba2014_GS_deseq2_FC0_HvL_AsMitsui.names.uniq", col.names = "Kitashiba2014")
 MitsuiHvl <- read.table("../DEseqOutput/Mitsui2015_GS_deseq2_FC0_HvL_AsMitsui.names.uniq", col.names = "Mitsui2015")
@@ -66,18 +72,138 @@ RR3NYESTHvl <- read.table("../DEseqOutput/RR3NYEST_GS_deseq2_FC0_HvL_AsMitsui.na
 
 ```
 
-```{r, DE_Go}
+```{r, allDE_KR}
+# These are made by blasting all DE genes against Mitsui2015, then making a unique list of the Mitsui-ified gene names
 
-JeongGO <- read.table("../DEseqOutput/GOstuff/JeongPlantGoSlimSingle.csv", sep=",", header=TRUE)
-KitashibaGO <- read.table("../DEseqOutput/GOstuff/KitPlantGoSlimSingle.csv", sep=",", header=TRUE)
-MitsuiGO <- read.table("../DEseqOutput/GOstuff/MitsuiPlantGoSlimSingle.csv", sep=",", header=TRUE)
-MogheGO <- read.table("../DEseqOutput/GOstuff/MoghePlantGoSlimSingle.csv", sep=",", header=TRUE)
-RR3NYGO <- read.table("../DEseqOutput/GOstuff/RR3NYPlantGoSlimSingle.csv", sep=",", header=TRUE)
+JeongKvR <- read.table("../DEseqOutput/Jeong2016_GS_deseq2_FC0_KvR_AsMitsui.names.uniq", col.names = "Jeong2016")
+KitashibaKvR <- read.table("../DEseqOutput/Kitashiba2014_GS_deseq2_FC0_KvR_AsMitsui.names.uniq", col.names = "Kitashiba2014")
+MitsuiKvR <- read.table("../DEseqOutput/Mitsui2015_GS_deseq2_FC0_KvR_AsMitsui.names.uniq", col.names = "Mitsui2015")
+MogheKvR <- read.table("../DEseqOutput/Moghe2014_GS_deseq2_FC0_KvR_AsMitsui.names.uniq", col.names = "Moghe2014")
+RR3NYESTKvR <- read.table("../DEseqOutput/RR3NYEST_GS_deseq2_FC0_KvR_AsMitsui.names.uniq", col.names = "RR3NYEST")
+
+```
+
+
+```{r, DE_Go_HvL_Orig}
+
+## These are from AgriGO
+#Species: Raphanus sativus
+# GO type: Completed GO
+#Background/Reference: Raphanus sativus loci ID
+
+# They are the downloaded table of "Detail Information"
+
+
+JeongGO_HL_orig <- fread("../GOstuff/859860889.txt", sep="\t", header=TRUE, select=c(1,9))
+KitashibaGO_HL_orig <- fread("../GOstuff/168996206.txt", sep="\t", header=TRUE, select=c(1,9))
+MitsuiGO_HL_orig <- fread("../GOstuff/863127189.txt", sep="\t", header=TRUE, select=c(1,9))
+MogheGO_HL_orig <- fread("../GOstuff/732970282.txt", sep="\t", header=TRUE, select=c(1,9))
+RR3NYGO_HL_orig <- fread("../GOstuff/167726697.txt", sep="\t", header=TRUE, select=c(1,9))
+```
+
+
+```{r, DE_Go_HvL_DOWN}
+
+## These are from AgriGO
+#Species: Raphanus sativus
+# GO type: Completed GO
+#Background/Reference: Raphanus sativus loci ID
+
+# They are the downloaded table of "Detail Information"
+
+
+JeongGO_HL_down <- fread("../GOstuff/438883676.txt", sep="\t", header=TRUE, select=c(1,9))
+KitashibaGO_HL_down <- fread("../GOstuff/540060453.txt", sep="\t", header=TRUE, select=c(1,9))
+MitsuiGO_HL_down <- fread("../GOstuff/921045242.txt", sep="\t", header=TRUE, select=c(1,9))
+MogheGO_HL_down <- fread("../GOstuff/839791211.txt", sep="\t", header=TRUE, select=c(1,9))
+RR3NYGO_HL_down <- fread("../GOstuff/711827397.txt", sep="\t", header=TRUE, select=c(1,9))
+```
+
+```{r, DE_Go_HvL_UP}
+
+## These are from AgriGO
+#Species: Raphanus sativus
+# GO type: Completed GO
+#Background/Reference: Raphanus sativus loci ID
+
+# They are the downloaded table of "Detail Information"
+
+
+JeongGO_HL_up <- fread("../GOstuff/748513915.txt", sep="\t", header=TRUE, select=c(1,9))
+KitashibaGO_HL_up <- fread("../GOstuff/402381969.txt", sep="\t", header=TRUE, select=c(1,9))
+MitsuiGO_HL_up <- fread("../GOstuff/283714203.txt", sep="\t", header=TRUE, select=c(1,9))
+MogheGO_HL_up <- fread("../GOstuff/206316052.txt", sep="\t", header=TRUE, select=c(1,9))
+RR3NYGO_HL_up <- fread("../GOstuff/158756668.txt", sep="\t", header=TRUE, select=c(1,9))
+```
+
+
+```{r, DE_Go_KvR_Orig}
+## These are from AgriGO
+#Species: Raphanus sativus
+# GO type: Completed GO
+#Background/Reference: Raphanus sativus loci ID
+
+# They are the downloaded table of "Detail Information"
+
+JeongGO_KR_orig <- fread("../GOstuff/140510586.txt", sep="\t", header=TRUE, select=c(1,9))
+KitashibaGO_KR_orig <- fread("../GOstuff/427392044.txt", sep="\t", header=TRUE, select=c(1,9))
+MitsuiGO_KR_orig <- fread("../GOstuff/330340891.txt", sep="\t", header=TRUE, select=c(1,9))
+MogheGO_KR_orig <- fread("../GOstuff/431848453.txt", sep="\t", header=TRUE, select=c(1,9))
+RR3NYGO_KR_orig <- fread("../GOstuff/204707397.txt", sep="\t", header=TRUE, select=c(1,9))
+```
+
+
+```{r, DE_Go_HvL_catagory}
+
+# These are from taking the significant GO lists from AgriGO and putting them into https://www.animalgenome.org/bioinfo/tools/catego/
+
+JeongGO_HL_cat <- read.table("../GOstuff/JeongPlantGoSlimSingle_HvL.csv", sep=",", header=TRUE)
+KitashibaGO_HL_cat <- read.table("../GOstuff/KitPlantGoSlimSingle_HvL.csv", sep=",", header=TRUE)
+MitsuiGO_HL_cat <- read.table("../GOstuff/MitsuiPlantGoSlimSingle_HvL.csv", sep=",", header=TRUE)
+MogheGO_HL_cat <- read.table("../GOstuff/MoghePlantGoSlimSingle_HvL.csv", sep=",", header=TRUE)
+RR3NYGO_HL_cat <- read.table("../GOstuff/RR3NYPlantGoSlimSingle_HvL.csv", sep=",", header=TRUE)
+```
+
+```{r, DE_Go_HvL_DOWN_catagory}
+
+# These are from taking the significant GO lists from AgriGO and putting them into https://www.animalgenome.org/bioinfo/tools/catego/
+
+JeongGO_HL_cat_DOWN <- read.table("../GOstuff/JeongPlantGoSlimSingle_HvL_DOWN.csv", sep=",", header=TRUE)
+KitashibaGO_HL_cat_DOWN <- read.table("../GOstuff/KitPlantGoSlimSingle_HvL_DOWN.csv", sep=",", header=TRUE)
+MitsuiGO_HL_cat_DOWN <- read.table("../GOstuff/MitsuiPlantGoSlimSingle_HvL_DOWN.csv", sep=",", header=TRUE)
+MogheGO_HL_cat_DOWN <- read.table("../GOstuff/MoghePlantGoSlimSingle_HvL_DOWN.csv", sep=",", header=TRUE)
+RR3NYGO_HL_cat_DOWN <- read.table("../GOstuff/RR3NYPlantGoSlimSingle_HvL_DOWN.csv", sep=",", header=TRUE)
+```
+
+```{r, DE_Go_HvL_UP_catagory}
+
+# These are from taking the significant GO lists from AgriGO and putting them into https://www.animalgenome.org/bioinfo/tools/catego/
+
+JeongGO_HL_cat_UP <- read.table("../GOstuff/JeongPlantGoSlimSingle_HvL_UP.csv", sep=",", header=TRUE)
+KitashibaGO_HL_cat_UP <- read.table("../GOstuff/KitPlantGoSlimSingle_HvL_UP.csv", sep=",", header=TRUE)
+MitsuiGO_HL_cat_UP <- read.table("../GOstuff/MitsuiPlantGoSlimSingle_HvL_UP.csv", sep=",", header=TRUE)
+MogheGO_HL_cat_UP <- read.table("../GOstuff/MoghePlantGoSlimSingle_HvL_UP.csv", sep=",", header=TRUE)
+RR3NYGO_HL_cat_UP <- read.table("../GOstuff/RR3NYPlantGoSlimSingle_HvL_UP.csv", sep=",", header=TRUE)
+```
+
+```{r, DE_Go_KvR_catagory}
+# These are from taking the significant GO lists from AgriGO and putting them into https://www.animalgenome.org/bioinfo/tools/catego/
+
+
+JeongGO_KR_cat <- read.table("../GOstuff/JeongPlantGoSlimSingle_KvR.csv", sep=",", header=TRUE)
+KitashibaGO_KR_cat <- read.table("../GOstuff/KitPlantGoSlimSingle_KvR.csv", sep=",", header=TRUE)
+MitsuiGO_KR_cat <- read.table("../GOstuff/MitsuiPlantGoSlimSingle_KvR.csv", sep=",", header=TRUE)
+MogheGO_KR_cat <- read.table("../GOstuff/MoghePlantGoSlimSingle_KvR.csv", sep=",", header=TRUE)
+RR3NYGO_KR_cat <- read.table("../GOstuff/RR3NYPlantGoSlimSingle_KvR.csv", sep=",", header=TRUE)
 ```
 
 
 ## Venn diagram of all genes that have reads mapped to them from each genome
+
 ```{r Allvenn}
+
+# These are made by blasting any genes with reads aligned to them against Mitsui2015, then making a unique list of the Mitsui-ified gene names
+
 
 MogheAll <- as.data.frame(MogheAllMap$V2)
 colnames(MogheAll) <- paste("Moghe2014", length(MogheAll$`MogheAllMap$V2`), sep = "_")
@@ -91,29 +217,202 @@ RR3NYESTAll <- as.data.frame(RR3NYESTAllMap$V2)
 colnames(RR3NYESTAll) <- paste("RR3NYEST", length(RR3NYESTAll$`RR3NYESTAllMap$V2`), sep = "_")
 
 
-venn(c(MogheAll,JeongAll, KitashibaAll, MitsuiAll, RR3NYESTAll), cexsn=0.1, zcolor="style")
+venn(c(MogheAll,JeongAll, KitashibaAll, MitsuiAll, RR3NYESTAll),  zcolor="style",  cexsn=.1)
 
 ```
 
 
 ## Venn diagram of genes showing differential expression from each genome
 
+High vs. Low
 
 ```{r, HvLvenn}
-venn(c(MogheHvl,JeongHvl, KitashibaHvl, MitsuiHvl, RR3NYESTHvl), cexsn=0.1, zcolor="style")
+
+# These are made by blasting all DE genes against Mitsui2015, then making a unique list of the Mitsui-ified gene names
+
+colnames(MogheHvl) <- paste("Moghe2014", length(MogheHvl$Moghe2014), sep = "_")
+colnames(JeongHvl) <- paste("Jeong2016", length(JeongHvl$Jeong2016), sep = "_")
+colnames(KitashibaHvl) <- paste("Kitashiba2014", length(KitashibaHvl$Kitashiba2014), sep = "_")
+colnames(MitsuiHvl) <- paste("Mitsui2015", length(MitsuiHvl$Mitsui2015), sep = "_")
+colnames(RR3NYESTHvl) <- paste("RR3NYEST", length(RR3NYESTHvl$RR3NYEST), sep = "_")
+
+
+
+venn(c(MogheHvl,JeongHvl, KitashibaHvl, MitsuiHvl, RR3NYESTHvl),  zcolor="style",  cexsn=.1)
+```
+
+KBS vs Reed
+
+```{r, KvRvenn}
+# These are made by blasting all DE genes against Mitsui2015, then making a unique list of the Mitsui-ified gene names
+
+colnames(MogheKvR) <- paste("Moghe2014", length(MogheKvR$Moghe2014), sep = "_")
+colnames(JeongKvR) <- paste("Jeong2016", length(JeongKvR$Jeong2016), sep = "_")
+colnames(KitashibaKvR) <- paste("Kitashiba2014", length(KitashibaKvR$Kitashiba2014), sep = "_")
+colnames(MitsuiKvR) <- paste("Mitsui2015", length(MitsuiKvR$Mitsui2015), sep = "_")
+colnames(RR3NYESTKvR) <- paste("RR3NYEST", length(RR3NYESTKvR$RR3NYEST), sep = "_")
+
+venn(c(MogheKvR,JeongKvR, KitashibaKvR, MitsuiKvR, RR3NYESTKvR),  zcolor="style",  cexsn=.1)
+```
+
+## Data from GO terms
+
+## Venn diagram of GO terms for genes showing differential expression from each genome
+
+High vs Low
+```{r GO_orig_hvl_venn}
+
+## These are from AgriGO
+#Species: Raphanus sativus
+# GO type: Completed GO
+#Background/Reference: Raphanus sativus loci ID
+
+# They are the downloaded table of "Detail Information"
+
+## Yes, printing the files to run CateGOrizer here and then immediatly trying to plot them is stupid, but I'll fix it later.
+
+MogheGO_HL_orig <- dplyr::filter(MogheGO_HL_orig, FDR < .05) %>% dplyr::select(GO_acc)
+colnames(MogheGO_HL_orig) <- paste("Moghe2014", length(MogheGO_HL_orig$GO_acc), sep = "_")
+write.csv(MogheGO_HL_orig, "../GOstuff/Moghe_HL_4_CateGOrizer.txt", col.names = F, quote = F, row.names = F)
+
+JeongGO_HL_orig <- dplyr::filter(JeongGO_HL_orig, FDR < .05) %>% dplyr::select(GO_acc)
+colnames(JeongGO_HL_orig) <- paste("Jeong2016", length(JeongGO_HL_orig$GO_acc), sep = "_")
+write.csv(JeongGO_HL_orig, "../GOstuff/Jeong_HL_4_CateGOrizer.txt", col.names = F, quote = F, row.names = F)
+
+KitashibaGO_HL_orig <- dplyr::filter(KitashibaGO_HL_orig, FDR < .05) %>% dplyr::select(GO_acc)
+colnames(KitashibaGO_HL_orig) <- paste("Kitashiba2014", length(KitashibaGO_HL_orig$GO_acc), sep="_")
+write.csv(KitashibaGO_HL_orig, "../GOstuff/Kitashiba_HL_4_CateGOrizer.txt", col.names = F, quote = F, row.names = F)
+
+MitsuiGO_HL_orig <- dplyr::filter(MitsuiGO_HL_orig, FDR < .05) %>% dplyr::select(GO_acc)
+colnames(MitsuiGO_HL_orig) <- paste("Mitsui2015", length(MitsuiGO_HL_orig$GO_acc), sep = "_")
+write.csv(MitsuiGO_HL_orig, "../GOstuff/Mitsui_HL_4_CateGOrizer.txt", col.names = F, quote = F, row.names = F)
+
+RR3NYGO_HL_orig <- dplyr::filter(RR3NYGO_HL_orig, FDR < .05) %>% dplyr::select(GO_acc)
+colnames(RR3NYGO_HL_orig) <- paste("RR3NYEST", length(RR3NYGO_HL_orig$GO_acc), sep = "_")
+write.csv(RR3NYGO_HL_orig, "../GOstuff/RR3NYGO_HL_4_CateGOrizer.txt", col.names = F, quote = F, row.names = F)
+
+
+venn(c(MogheGO_HL_orig, JeongGO_HL_orig, KitashibaGO_HL_orig, MitsuiGO_HL_orig, RR3NYGO_HL_orig),  zcolor="style",  cexsn=.1)
+
+```
+
+High vs Low DOWN
+```{r GO_DOWN_hvl_venn}
+
+## These are from AgriGO
+#Species: Raphanus sativus
+# GO type: Completed GO
+#Background/Reference: Raphanus sativus loci ID
+
+# They are the downloaded table of "Detail Information"
+
+## Yes, printing the files to run CateGOrizer here and then immediatly trying to plot them is stupid, but I'll fix it later.
+
+MogheGO_HL_down <- dplyr::filter(MogheGO_HL_down, FDR < .05) %>% dplyr::select(GO_acc)
+colnames(MogheGO_HL_down) <- paste("Moghe2014", length(MogheGO_HL_down$GO_acc), sep = "_")
+write.csv(MogheGO_HL_down, "../GOstuff/Moghe_HL_down_4_CateGOrizer.txt", col.names = F, quote = F, row.names = F)
+
+JeongGO_HL_down <- dplyr::filter(JeongGO_HL_down, FDR < .05) %>% dplyr::select(GO_acc)
+colnames(JeongGO_HL_down) <- paste("Jeong2016", length(JeongGO_HL_down$GO_acc), sep = "_")
+write.csv(JeongGO_HL_down, "../GOstuff/Jeong_HL_down_4_CateGOrizer.txt", col.names = F, quote = F, row.names = F)
+
+KitashibaGO_HL_down <- dplyr::filter(KitashibaGO_HL_down, FDR < .05) %>% dplyr::select(GO_acc)
+colnames(KitashibaGO_HL_down) <- paste("Kitashiba2014", length(KitashibaGO_HL_down$GO_acc), sep="_")
+write.csv(KitashibaGO_HL_down, "../GOstuff/Kitashiba_HL_down_4_CateGOrizer.txt", col.names = F, quote = F, row.names = F)
+
+MitsuiGO_HL_down <- dplyr::filter(MitsuiGO_HL_down, FDR < .05) %>% dplyr::select(GO_acc)
+colnames(MitsuiGO_HL_down) <- paste("Mitsui2015", length(MitsuiGO_HL_down$GO_acc), sep = "_")
+write.csv(MitsuiGO_HL_down, "../GOstuff/Mitsui_HL_down_4_CateGOrizer.txt", col.names = F, quote = F, row.names = F)
+
+RR3NYGO_HL_down <- dplyr::filter(RR3NYGO_HL_down, FDR < .05) %>% dplyr::select(GO_acc)
+colnames(RR3NYGO_HL_down) <- paste("RR3NYEST", length(RR3NYGO_HL_down$GO_acc), sep = "_")
+write.csv(RR3NYGO_HL_down, "../GOstuff/RR3NYGO_HL_down_4_CateGOrizer.txt", col.names = F, quote = F, row.names = F)
+
+
+venn(c(MogheGO_HL_down, JeongGO_HL_down, KitashibaGO_HL_down, MitsuiGO_HL_down, RR3NYGO_HL_down),  zcolor="style",  cexsn=.1)
+
+```
+High vs Low UP
+
+```{r GO_UP_hvl_venn}
+
+## These are from AgriGO
+#Species: Raphanus sativus
+# GO type: Completed GO
+#Background/Reference: Raphanus sativus loci ID
+
+# They are the downloaded table of "Detail Information"
+
+## Yes, printing the files to run CateGOrizer here and then immediatly trying to plot them is stupid, but I'll fix it later.
+
+MogheGO_HL_up <- dplyr::filter(MogheGO_HL_up, FDR < .05) %>% dplyr::select(GO_acc)
+colnames(MogheGO_HL_up) <- paste("Moghe2014", length(MogheGO_HL_up$GO_acc), sep = "_")
+write.csv(MogheGO_HL_up, "../GOstuff/Moghe_HL_up_4_CateGOrizer.txt", col.names = F, quote = F, row.names = F)
+
+JeongGO_HL_up <- dplyr::filter(JeongGO_HL_up, FDR < .05) %>% dplyr::select(GO_acc)
+colnames(JeongGO_HL_up) <- paste("Jeong2016", length(JeongGO_HL_up$GO_acc), sep = "_")
+write.csv(JeongGO_HL_up, "../GOstuff/Jeong_HL_up_4_CateGOrizer.txt", col.names = F, quote = F, row.names = F)
+
+KitashibaGO_HL_up <- dplyr::filter(KitashibaGO_HL_up, FDR < .05) %>% dplyr::select(GO_acc)
+colnames(KitashibaGO_HL_up) <- paste("Kitashiba2014", length(KitashibaGO_HL_up$GO_acc), sep="_")
+write.csv(KitashibaGO_HL_up, "../GOstuff/Kitashiba_HL_up_4_CateGOrizer.txt", col.names = F, quote = F, row.names = F)
+
+MitsuiGO_HL_up <- dplyr::filter(MitsuiGO_HL_up, FDR < .05) %>% dplyr::select(GO_acc)
+colnames(MitsuiGO_HL_up) <- paste("Mitsui2015", length(MitsuiGO_HL_up$GO_acc), sep = "_")
+write.csv(MitsuiGO_HL_up, "../GOstuff/Mitsui_HL_up_4_CateGOrizer.txt", col.names = F, quote = F, row.names = F)
+
+RR3NYGO_HL_up <- dplyr::filter(RR3NYGO_HL_up, FDR < .05) %>% dplyr::select(GO_acc)
+colnames(RR3NYGO_HL_up) <- paste("RR3NYEST", length(RR3NYGO_HL_up$GO_acc), sep = "_")
+write.csv(RR3NYGO_HL_up, "../GOstuff/RR3NYGO_HL_up_4_CateGOrizer.txt", col.names = F, quote = F, row.names = F)
+
+
+venn(c(MogheGO_HL_up, JeongGO_HL_up, KitashibaGO_HL_up, MitsuiGO_HL_up, RR3NYGO_HL_up),  zcolor="style",  cexsn=.1)
+
+```
+
+KBS vs Reed
+
+```{r GO_orig_kvr_venn}
+
+## These are from AgriGO
+#Species: Raphanus sativus
+# GO type: Completed GO
+#Background/Reference: Raphanus sativus loci ID
+
+# They are the downloaded table of "Detail Information"
+
+## Yes, printing the files to run CateGOrizer here and then immediatly trying to plot them is stupid, but I'll fix it later.
+
+
+MogheGO_KR_orig <- dplyr::filter(MogheGO_KR_orig, FDR < .05) %>% dplyr::select(GO_acc)
+colnames(MogheGO_KR_orig) <- paste("Moghe2014", length(MogheGO_KR_orig$GO_acc), sep = "_")
+write.csv(MogheGO_KR_orig, "../GOstuff/Moghe_KR_4_CateGOrizer.txt", col.names = F, quote = F, row.names = F)
+
+
+JeongGO_KR_orig <- dplyr::filter(JeongGO_KR_orig, FDR < .05) %>% dplyr::select(GO_acc)
+colnames(JeongGO_KR_orig) <- paste("Jeong2016", length(JeongGO_KR_orig$GO_acc), sep = "_")
+write.csv(JeongGO_KR_orig, "../GOstuff/Jeong_KR_4_CateGOrizer.txt", col.names = F, quote = F, row.names = F)
+
+KitashibaGO_KR_orig <- dplyr::filter(KitashibaGO_KR_orig, FDR < .05) %>% dplyr::select(GO_acc)
+colnames(KitashibaGO_KR_orig) <- paste("Kitashiba2014", length(KitashibaGO_KR_orig$GO_acc), sep="_")
+write.csv(KitashibaGO_KR_orig, "../GOstuff/Kitashiba_KR_4_CateGOrizer.txt", col.names = F, quote = F, row.names = F)
+
+MitsuiGO_KR_orig <- dplyr::filter(MitsuiGO_KR_orig, FDR < .05) %>% dplyr::select(GO_acc)
+colnames(MitsuiGO_KR_orig) <- paste("Mitsui2015", length(MitsuiGO_KR_orig$GO_acc), sep = "_")
+write.csv(MitsuiGO_KR_orig, "../GOstuff/Mitsui_KR_4_CateGOrizer.txt", col.names = F, quote = F, row.names = F)
+
+RR3NYGO_KR_orig <- dplyr::filter(RR3NYGO_KR_orig, FDR < .05) %>% dplyr::select(GO_acc)
+colnames(RR3NYGO_KR_orig) <- paste("RR3NYEST", length(RR3NYGO_KR_orig$GO_acc), sep = "_")
+write.csv(RR3NYGO_KR_orig, "../GOstuff/RR3NYGO_KR_4_CateGOrizer.txt", col.names = F, quote = F, row.names = F)
+
+venn(c(MogheGO_KR_orig, JeongGO_KR_orig, KitashibaGO_KR_orig, MitsuiGO_KR_orig, RR3NYGO_KR_orig),  zcolor="style",  cexsn=.1)
+
 ```
 
 
-```{r, eval=FALSE}
-getFnAnot_genome(MogheHvl, david = NULL, email = "charbo24@msu.edu",
-idType = "ENTREZ_GENE_ID", listName = "auto_list", count = 1L,
-PVal = 1, background = NULL, bgIdType = NULL, bgListName = NULL,
-getKEGG = FALSE)
-```
+### Data from using a GO term catagorizer. 
 
-## Data from using a GO term catagorizer. 
-
-This program essentially takes the big list of GO terms from the DE gene list and arranges them into high level meta-catagories. Since GO terms aren't unique in the DAG graphs, the catagory counts don't always add up to the number of original terms. I used the single count method, which counts "only once when multiple paths are found between an ancestral term and a child term. The Single occurences count is often used to get an idea how the child terms are "classified". It can often effectively avoid an inflated total counts". (From FAQ). However, everything still gets at least double counted (In biological process and biosynthetic process, for example)
+This program essentially takes the big list of GO terms from the DE GO list and arranges them into high level meta-catagories. Since GO terms aren't unique in the DAG graphs, the catagory counts don't always add up to the number of original terms. I used the single count method, which counts "only once when multiple paths are found between an ancestral term and a child term. The Single occurences count is often used to get an idea how the child terms are "classified". It can often effectively avoid an inflated total counts". (From FAQ). However, everything still gets at least double counted (In biological process and biosynthetic process, for example)
 
 
 https://www.animalgenome.org/bioinfo/tools/catego/
@@ -126,55 +425,106 @@ Classification Methods: Plant_GOslim
 
 Counting Methods: single
 
-### Venn
 
-This Venn doesn't do what I thought it would. But I've already written the code :/
-```{r, GOHvLvenn}
-
-MogheAllGO <- as.data.frame(MogheGO$GO_Class_ID)
-colnames(MogheAllGO) <- paste("Moghe2014", length(MogheAllGO$`MogheGO$GO_Class_ID`), sep = "_")
-
-JeongAllGO <- as.data.frame(JeongGO$GO_Class_ID)
-colnames(JeongAllGO) <- paste("Jeong2016", length(JeongAllGO$`JeongGO$GO_Class_ID`), sep = "_")
-
-KitashibaAllGO <- as.data.frame(KitashibaGO$GO_Class_ID)
-colnames(KitashibaAllGO) <- paste("Kitashiba2014", length(KitashibaAllGO$`KitashibaGO$GO_Class_ID`), sep="_")
-
-MitsuiAllGO <- as.data.frame(MitsuiGO$GO_Class_ID)
-colnames(MitsuiAllGO) <- paste("Mitsui2015", length(MitsuiAllGO$`MitsuiGO$GO_Class_ID`), sep = "_")
-
-RR3NYESTAllGO <- as.data.frame(RR3NYGO$GO_Class_ID)
-colnames(RR3NYESTAllGO) <- paste("RR3NYEST", length(RR3NYESTAllGO$`RR3NYGO$GO_Class_ID`), sep = "_")
-
-venn(c(MogheAllGO,JeongAllGO, KitashibaAllGO, MitsuiAllGO, RR3NYESTAllGO), cexsn=1, zcolor="style")
-```
-
-This is better.
-
-
-
+High vs Low
 ```{r GOHvlBar}
 
-AllGOs <- full_join(MogheGO[,c(1,3)], MitsuiGO[c(1,3)], by= c("GO_Class_ID"="GO_Class_ID"))
-AllGOs <- full_join(AllGOs, JeongGO[,c(1,3)], by= c("GO_Class_ID"="GO_Class_ID"))
-AllGOs <- full_join(AllGOs, KitashibaGO[,c(1,3)], by= c("GO_Class_ID"="GO_Class_ID"))
-AllGOs <- full_join(AllGOs, RR3NYGO[,c(1,3)], by= c("GO_Class_ID"="GO_Class_ID"))
-definitions <- rbind(MogheGO[,c(1,2)], JeongGO[,c(1,2)], KitashibaGO[,c(1,2)],
-                     RR3NYGO[,c(1,2)], MitsuiGO[,c(1,2)])
+AllGOs <- full_join(MogheGO_HL_cat[,c(1,3)], MitsuiGO_HL_cat[c(1,3)], by= c("GO.Class.ID"="GO.Class.ID"))
+AllGOs <- full_join(AllGOs, JeongGO_HL_cat[,c(1,3)], by= c("GO.Class.ID"="GO.Class.ID"))
+AllGOs <- full_join(AllGOs, KitashibaGO_HL_cat[,c(1,3)], by= c("GO.Class.ID"="GO.Class.ID"))
+AllGOs <- full_join(AllGOs, RR3NYGO_HL_cat[,c(1,3)], by= c("GO.Class.ID"="GO.Class.ID"))
+definitions <- rbind(MogheGO_HL_cat[,c(1,2)], JeongGO_HL_cat[,c(1,2)], KitashibaGO_HL_cat[,c(1,2)],
+                     RR3NYGO_HL_cat[,c(1,2)], MitsuiGO_HL_cat[,c(1,2)])
 definitions <- unique(definitions)
 AllGOs <- right_join(AllGOs, definitions)
 
 colnames(AllGOs) <- c( "GO_Class_ID", "Moghe2014", "Mitsui2015", "Jeong2016", "Kitashiba2014", "RR3NYest", "Definitions")
 
-write.csv(AllGOs, "../DEseqOutput/GOstuff/CompareGOsHvL.csv")
+write.csv(AllGOs, "../GOstuff/CompareGOsHvL.csv")
 
-MogheGO$Genome <- "Moghe2014"
-MitsuiGO$Genome <- "Mitsui2015"
-JeongGO$Genome <- "Jeong2016"
-KitashibaGO$Genome <- "Kitashiba2014"
-RR3NYGO$Genome <- "RR3NYest"
-PlotAllGOs <- as.data.frame( rbind( MogheGO, MitsuiGO, JeongGO, KitashibaGO, RR3NYGO))
+MogheGO_HL_cat$Genome <- "Moghe2014"
+MitsuiGO_HL_cat$Genome <- "Mitsui2015"
+JeongGO_HL_cat$Genome <- "Jeong2016"
+KitashibaGO_HL_cat$Genome <- "Kitashiba2014"
+RR3NYGO_HL_cat$Genome <- "RR3NYest"
+PlotAllGOs <- as.data.frame( rbind( MogheGO_HL_cat, MitsuiGO_HL_cat, JeongGO_HL_cat, KitashibaGO_HL_cat, RR3NYGO_HL_cat))
 
-ggplot(PlotAllGOs, aes(Genome)) + geom_bar(aes(fill=GO_Class_ID, weight=Counts))
+ggplot(PlotAllGOs, aes(Genome)) + geom_bar(aes(fill=GO.Class.ID, weight=Counts)) + theme(legend.position = "none")
+```
+
+```{r GOHvlBar_DOWN}
+
+AllGOs <- full_join(MogheGO_HL_cat_DOWN[,c(1,3)], MitsuiGO_HL_cat_DOWN[c(1,3)], by= c("GO.Class.ID"="GO.Class.ID"))
+AllGOs <- full_join(AllGOs, JeongGO_HL_cat_DOWN[,c(1,3)], by= c("GO.Class.ID"="GO.Class.ID"))
+AllGOs <- full_join(AllGOs, KitashibaGO_HL_cat_DOWN[,c(1,3)], by= c("GO.Class.ID"="GO.Class.ID"))
+AllGOs <- full_join(AllGOs, RR3NYGO_HL_cat_DOWN[,c(1,3)], by= c("GO.Class.ID"="GO.Class.ID"))
+definitions <- rbind(MogheGO_HL_cat_DOWN[,c(1,2)], JeongGO_HL_cat_DOWN[,c(1,2)], KitashibaGO_HL_cat_DOWN[,c(1,2)],
+                     RR3NYGO_HL_cat_DOWN[,c(1,2)], MitsuiGO_HL_cat_DOWN[,c(1,2)])
+definitions <- unique(definitions)
+AllGOs <- right_join(AllGOs, definitions)
+
+colnames(AllGOs) <- c( "GO_Class_ID", "Moghe2014", "Mitsui2015", "Jeong2016", "Kitashiba2014", "RR3NYest", "Definitions")
+
+write.csv(AllGOs, "../GOstuff/CompareGOsHvL_DOWN.csv")
+
+MogheGO_HL_cat_DOWN$Genome <- "Moghe2014"
+MitsuiGO_HL_cat_DOWN$Genome <- "Mitsui2015"
+JeongGO_HL_cat_DOWN$Genome <- "Jeong2016"
+KitashibaGO_HL_cat_DOWN$Genome <- "Kitashiba2014"
+RR3NYGO_HL_cat_DOWN$Genome <- "RR3NYest"
+PlotAllGOs <- as.data.frame( rbind( MogheGO_HL_cat_DOWN, MitsuiGO_HL_cat_DOWN, JeongGO_HL_cat_DOWN, KitashibaGO_HL_cat_DOWN, RR3NYGO_HL_cat_DOWN))
+
+ggplot(PlotAllGOs, aes(Genome)) + geom_bar(aes(fill=GO.Class.ID, weight=Counts)) + theme(legend.position = "none")
+```
+
+```{r GOHvlBar_UP}
+
+AllGOs <- full_join(MogheGO_HL_cat_UP[,c(1,3)], MitsuiGO_HL_cat_UP[c(1,3)], by= c("GO.Class.ID"="GO.Class.ID"))
+AllGOs <- full_join(AllGOs, JeongGO_HL_cat_UP[,c(1,3)], by= c("GO.Class.ID"="GO.Class.ID"))
+AllGOs <- full_join(AllGOs, KitashibaGO_HL_cat_UP[,c(1,3)], by= c("GO.Class.ID"="GO.Class.ID"))
+AllGOs <- full_join(AllGOs, RR3NYGO_HL_cat_UP[,c(1,3)], by= c("GO.Class.ID"="GO.Class.ID"))
+definitions <- rbind(MogheGO_HL_cat_UP[,c(1,2)], JeongGO_HL_cat_UP[,c(1,2)], KitashibaGO_HL_cat_UP[,c(1,2)],
+                     RR3NYGO_HL_cat_UP[,c(1,2)], MitsuiGO_HL_cat_UP[,c(1,2)])
+definitions <- unique(definitions)
+AllGOs <- right_join(AllGOs, definitions)
+
+colnames(AllGOs) <- c( "GO_Class_ID", "Moghe2014", "Mitsui2015", "Jeong2016", "Kitashiba2014", "RR3NYest", "Definitions")
+
+write.csv(AllGOs, "../GOstuff/CompareGOsHvL_UP.csv")
+
+MogheGO_HL_cat_UP$Genome <- "Moghe2014"
+MitsuiGO_HL_cat_UP$Genome <- "Mitsui2015"
+JeongGO_HL_cat_UP$Genome <- "Jeong2016"
+KitashibaGO_HL_cat_UP$Genome <- "Kitashiba2014"
+RR3NYGO_HL_cat_UP$Genome <- "RR3NYest"
+PlotAllGOs <- as.data.frame( rbind( MogheGO_HL_cat_UP, MitsuiGO_HL_cat_UP, JeongGO_HL_cat_UP, KitashibaGO_HL_cat_UP, RR3NYGO_HL_cat_UP))
+
+ggplot(PlotAllGOs, aes(Genome)) + geom_bar(aes(fill=GO.Class.ID, weight=Counts)) + theme(legend.position = "none")
+```
+KBS vs Reed
+
+```{r GOKvRBar}
+
+AllGOs <- full_join(MogheGO_KR_cat[,c(1,3)], MitsuiGO_KR_cat[c(1,3)], by= c("GO.Class.ID"="GO.Class.ID"))
+AllGOs <- full_join(AllGOs, JeongGO_KR_cat[,c(1,3)], by= c("GO.Class.ID"="GO.Class.ID"))
+AllGOs <- full_join(AllGOs, KitashibaGO_KR_cat[,c(1,3)], by= c("GO.Class.ID"="GO.Class.ID"))
+AllGOs <- full_join(AllGOs, RR3NYGO_KR_cat[,c(1,3)], by= c("GO.Class.ID"="GO.Class.ID"))
+definitions <- rbind(MogheGO_KR_cat[,c(1,2)], JeongGO_KR_cat[,c(1,2)], KitashibaGO_KR_cat[,c(1,2)],
+                     RR3NYGO_KR_cat[,c(1,2)], MitsuiGO_KR_cat[,c(1,2)])
+definitions <- unique(definitions)
+AllGOs <- right_join(AllGOs, definitions)
+
+colnames(AllGOs) <- c( "GO.Class.ID", "Moghe2014", "Mitsui2015", "Jeong2016", "Kitashiba2014", "RR3NYest", "Definitions")
+
+write.csv(AllGOs, "../GOstuff/CompareGOsKvR.csv")
+
+MogheGO_KR_cat$Genome <- "Moghe2014"
+MitsuiGO_KR_cat$Genome <- "Mitsui2015"
+JeongGO_KR_cat$Genome <- "Jeong2016"
+KitashibaGO_KR_cat$Genome <- "Kitashiba2014"
+RR3NYGO_KR_cat$Genome <- "RR3NYest"
+PlotAllGOs <- as.data.frame( rbind( MogheGO_KR_cat, MitsuiGO_KR_cat, JeongGO_KR_cat, KitashibaGO_KR_cat, RR3NYGO_KR_cat))
+
+ggplot(PlotAllGOs, aes(Genome)) + geom_bar(aes(fill=GO.Class.ID, weight=Counts)) + theme(legend.position = "none")
 ```
 

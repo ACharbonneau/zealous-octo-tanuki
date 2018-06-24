@@ -73,6 +73,7 @@ unzip Genomes/RR3NYEST/RR3_NY_25000.zip -d Genomes/RR3NYEST/
 #Get FASTAS into right format
 awk '/^>/ {printf("\n%s\n",$0);next; } { printf("%s",$0);}  END {printf("\n");}' < Genomes/Kitashiba2014/RSA_r1.0 > Genomes/Kitashiba2014/Edit_RSA_r1.0.fasta
 awk '/^>/ {printf("\n%s\n",$0);next; } { printf("%s",$0);}  END {printf("\n");}' < Genomes/RR3NYEST/RR3_NY/1000017.est > Genomes/RR3NYEST/RR3_NY/1000017.fa
+awk '/^>/ {printf("\n%s\n",$0);next; } { printf("%s",$0);}  END {printf("\n");}' < Genomes/Mitsui2015/rsgm_nav1.fasta > Genomes/Mitsui2015/rsgm_nav1.fa
 
 #Change Derives_from from number.1 to number:
 less Genomes/Jeong2016/Rs_1.0_Gene.LFY.gff.gz | sed -r s/\(Derives_from=Rs[0-9]+\)\.[0-9]/\\1/g > Genomes/Jeong2016/Edited_Rs_1.0.Gene.LFY.gff

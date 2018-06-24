@@ -39,7 +39,9 @@ ALLTHEFILES <- inner_join(ALLTHEFILES, metadata)
 
 ALLTHEFILES <- mutate(ALLTHEFILES, PerReadsMapped=MappedReads/TotalReads)
 
-p <- ggplot(ALLTHEFILES, aes(TotalReads, MappedReads)) + geom_point(aes(col=Genome, shape=Mapper), size=2 )
+p <- ggplot(ALLTHEFILES, aes(TotalReads, MappedReads)) + 
+      geom_point(aes(col=PerReadsMapped, shape=Genome), size=2 ) +
+      scale_colour_distiller(palette = "RdBu", direction=1)
 
 ggsave("../figures/MappedbyTotalReads.png", width = 7, height = 6)
 

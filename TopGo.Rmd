@@ -69,10 +69,12 @@ mitsuiGO <- readMappings(file ="../Genomes/MitsuiAnnotation.map")
 ```{r, include=FALSE}
 # read in files
 
+allgeneList <- read.table(paste("../DEseqOutput/", genome,"_GS_background_AsMitsui.names.uniq", sep=""), sep=",")
+
+## HvL
+
 hvlgeneList <- read.table(paste( "../DEseqOutput/", genome,"_GS_deseq2_FC0_HvL_AsMitsui.names.uniq", sep = ""))
 
-
-allgeneList <- read.table(paste("../DEseqOutput/", genome,"_GS_background_AsMitsui.names.uniq", sep=""), sep=",")
 
 hvlgenes <- as.vector(as.matrix(hvlgeneList))
 
@@ -83,7 +85,23 @@ ifelse(genome == "Mitsui2015",
 hvlallList <- factor(as.integer( allgenes %in% hvlgenes))
 names(hvlallList) <- allgenes
 
+##KvR
+
+kvrgeneList <- read.table(paste( "../DEseqOutput/", genome,"_GS_deseq2_FC0_KvR_AsMitsui.names.uniq", sep = ""))
+
+kvrgenes <- as.vector(as.matrix(kvrgeneList))
+
+ifelse(genome == "Mitsui2015", 
+       allgenes <- as.vector(as.matrix(allgeneList$V1)),
+       allgenes <- as.vector(as.matrix(allgeneList$V2)))
+
+kvrallList <- factor(as.integer( allgenes %in% kvrgenes))
+names(kvrallList) <- allgenes
+
+
 ```
+
+## High vs Low
 
 ```{r}
 HvLGOdata <- new("topGOdata", ontology = "BP", allGenes = hvlallList,
@@ -111,13 +129,13 @@ hist(pvalFis, 50, xlab = "p-values")
 ```
 
 
-```{r, Top5Go}
+```{r, Top5GoHvL}
 printGraph(HvLGOdata, resultFisher, firstSigNodes = 5, fn.prefix = genome, useInfo = "all", pdfSW = TRUE)
 
 ```
 
 ```{r}
-allRes <- GenTable(HvLGOdata, classic = resultFisher, topNodes=300,
+allRes <- GenTable(HvLGOdata, classic = resultFisher, topNodes=1000,
                  orderBy = "classic", ranksOf = "classic")
                  
 
@@ -127,5 +145,41 @@ DT::datatable(allRes)
 
 ```
 
+## KBS vs Reed
+
+```{r}
+KvRGOdata <- new("topGOdata", ontology = "BP", allGenes = kvrallList,
+            annot = annFUN.gene2GO, gene2GO = mitsuiGO)
+
+KvRGOdata
+```
 
 
+```{r}
+resultFisher <- getSigGroups(KvRGOdata, test.stat)
+
+resultFisher
+```
+
+```{r}
+pvalFis <- score(resultFisher)
+hist(pvalFis, 50, xlab = "p-values")
+
+```
+
+
+```{r, Top5GoKvR}
+printGraph(KvRGOdata, resultFisher, firstSigNodes = 5, fn.prefix = genome, useInfo = "all", pdfSW = TRUE)
+
+```
+
+```{r}
+allRes <- GenTable(KvRGOdata, classic = resultFisher, topNodes=1000,
+                 orderBy = "classic", ranksOf = "classic")
+                 
+
+write.csv(allRes, paste("../DEseqOutput/", genome, "Go_KvR.csv", sep=""))
+
+DT::datatable(allRes)
+
+```
