@@ -75,8 +75,8 @@ sessionInfo()
 ## To run interactively, you need to load the inputfiles manually, 
 ## run the following two commented lines:
 
- Inputfiles <- read.csv("../metadata/HTanalysisInputForR.csv")
- Mapping <- "Mitsui2015_GS"
+# Inputfiles <- read.csv("../metadata/HTanalysisInputForR.csv")
+# Mapping <- "Mitsui2015_GS"
 
 subgroup <- Inputfiles[ Inputfiles$Dataname == Mapping, ]
 
