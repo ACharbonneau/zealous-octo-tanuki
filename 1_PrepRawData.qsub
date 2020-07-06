@@ -16,7 +16,7 @@
 cd ${PBS_O_WORKDIR} || exit #Go to project analysis directory
 
 echo "1. Getting data"
-for i in /mnt/research/radishGenomics/OriginalSequencingFiles/2008_AE_RNAseq/cel*/*.tar.gz
+for i in ../2008_AE_RNAseq/cel*/*.tar.gz
   do  [[ -e ${i} ]] || break
   tar -zxvf ${i} -C .
 done
